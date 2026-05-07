@@ -1,1 +1,4 @@
+com/dormitory/backend/entity/BaseEntity.class
+com/dormitory/backend/entity/User.class
+com/dormitory/backend/entity/Role.class
 com/dormitory/backend/BackendApplication.class
