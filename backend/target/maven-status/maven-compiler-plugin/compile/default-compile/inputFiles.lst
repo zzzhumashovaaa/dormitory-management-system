@@ -1,1 +1,4 @@
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/BackendApplication.java
+/Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/entity/BaseEntity.java
+/Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/entity/Role.java
+/Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/entity/User.java
