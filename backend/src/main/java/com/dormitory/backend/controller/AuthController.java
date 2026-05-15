@@ -19,14 +19,11 @@ public class AuthController {
 
         String message = authService.register(request);
 
-        return new AuthResponse(message, null);
+        return new AuthResponse(message, null, null);
     }
 
     @PostMapping("/login")
     public AuthResponse login(@RequestBody LoginRequest request) {
-
-        String token = authService.login(request);
-
-        return new AuthResponse("Login successful", token);
+        return authService.login(request);
     }
 }
