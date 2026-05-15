@@ -2,10 +2,10 @@ package com.dormitory.backend.service;
 
 import com.dormitory.backend.dto.ApplicationRequest;
 import com.dormitory.backend.dto.ApplicationStatusRequest;
-import com.dormitory.backend.entity.ApplicationStatus;
-import com.dormitory.backend.entity.DormitoryApplication;
-import com.dormitory.backend.entity.User;
+import com.dormitory.backend.entity.*;
 import com.dormitory.backend.repository.ApplicationRepository;
+import com.dormitory.backend.repository.RoomRepository;
+import com.dormitory.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +17,8 @@ import java.util.List;
 public class ApplicationService {
 
     private final ApplicationRepository applicationRepository;
+    private final RoomRepository roomRepository;
+    private final UserRepository userRepository;
 
     public DormitoryApplication createApplication(ApplicationRequest request, User student) {
 
@@ -51,6 +53,49 @@ public class ApplicationService {
 
         application.setStatus(request.getStatus());
         application.setUpdatedAt(LocalDateTime.now());
+
+        if (request.getStatus() == ApplicationStatus.APPROVED) {
+
+            User student = application.getStudent();
+
+            if (student.getGender() == null) {
+                throw new RuntimeException("Student gender is not specified");
+            }
+
+            List<Room> availableRooms = roomRepository.findByGenderAndStatus(
+                    student.getGender(),
+                    RoomStatus.ACTIVE
+            );
+
+            Room selectedRoom = null;
+
+            for (Room room : availableRooms) {
+
+                if (room.getOccupiedCount() < room.getCapacity()) {
+                    selectedRoom = room;
+                    break;
+                }
+            }
+
+            if (selectedRoom == null) {
+                throw new RuntimeException("No available rooms");
+            }
+
+            student.setRoom(selectedRoom);
+
+            selectedRoom.setOccupiedCount(
+                    selectedRoom.getOccupiedCount() + 1
+            );
+
+            if (selectedRoom.getOccupiedCount()
+                    .equals(selectedRoom.getCapacity())) {
+
+                selectedRoom.setStatus(RoomStatus.FULL);
+            }
+
+            userRepository.save(student);
+            roomRepository.save(selectedRoom);
+        }
 
         return applicationRepository.save(application);
     }
