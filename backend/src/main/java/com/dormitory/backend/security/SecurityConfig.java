@@ -3,6 +3,7 @@ package com.dormitory.backend.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -12,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -32,6 +34,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+
+                        .requestMatchers("/api/users/me").hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+
+                        .requestMatchers("/api/rooms/**").hasRole("ADMIN")
+
+                        .requestMatchers("/api/applications/my").hasRole("STUDENT")
+                        .requestMatchers("/api/applications").hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+                        .requestMatchers("/api/applications/**").hasAnyRole("MANAGER", "ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form.disable())
