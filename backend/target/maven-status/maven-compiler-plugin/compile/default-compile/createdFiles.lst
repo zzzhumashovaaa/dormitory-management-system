@@ -1,9 +1,11 @@
+com/dormitory/backend/security/JwtAuthenticationFilter.class
 com/dormitory/backend/security/SecurityConfig.class
 com/dormitory/backend/service/AuthService.class
 com/dormitory/backend/entity/User.class
 com/dormitory/backend/dto/RegisterRequest.class
 com/dormitory/backend/dto/AuthResponse.class
 com/dormitory/backend/dto/LoginRequest.class
+com/dormitory/backend/controller/UserController.class
 com/dormitory/backend/entity/BaseEntity.class
 com/dormitory/backend/entity/Role.class
 com/dormitory/backend/repository/UserRepository.class

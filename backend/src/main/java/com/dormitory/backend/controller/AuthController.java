@@ -6,7 +6,6 @@ import com.dormitory.backend.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import com.dormitory.backend.dto.LoginRequest;
-import com.dormitory.backend.dto.LoginRequest;
 
 @RestController
 @RequestMapping("/api/auth")

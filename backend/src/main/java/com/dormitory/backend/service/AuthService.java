@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.dormitory.backend.dto.LoginRequest;
-import com.dormitory.backend.dto.LoginRequest;
 import com.dormitory.backend.security.JwtService;
 
 @Service
