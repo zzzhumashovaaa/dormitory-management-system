@@ -1,4 +1,5 @@
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/BackendApplication.java
+/Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/config/DataInitializer.java
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/controller/ApplicationController.java
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/controller/AuthController.java
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/controller/RoomController.java
