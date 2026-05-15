@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.dormitory.backend.dto.LoginRequest;
+import com.dormitory.backend.dto.LoginRequest;
+import com.dormitory.backend.security.JwtService;
 
 @Service
 @RequiredArgsConstructor
@@ -15,6 +17,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public String register(RegisterRequest request) {
 
@@ -43,6 +46,6 @@ public class AuthService {
             throw new RuntimeException("Invalid password");
         }
 
-        return "Login successful";
+        return jwtService.generateToken(user);
     }
 }
