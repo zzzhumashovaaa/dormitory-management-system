@@ -2,9 +2,11 @@ import { Link, useLocation } from "react-router-dom";
 
 export default function Sidebar() {
   const location = useLocation();
+  const role = localStorage.getItem("role");
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("role");
     window.location.href = "/";
   };
 
@@ -29,12 +31,24 @@ export default function Sidebar() {
     <div className="w-64 min-h-screen bg-gray-950 text-white p-5 flex flex-col justify-between">
       <div>
         <h1 className="text-2xl font-bold mb-2">Dormitory</h1>
-        <p className="text-sm text-gray-400 mb-8">Admin Panel</p>
+        <p className="text-sm text-gray-400 mb-8">
+          {role === "STUDENT" ? "Student Panel" : "Admin Panel"}
+        </p>
 
         <div className="flex flex-col gap-3">
-          {menuItem("/dashboard", "Dashboard")}
-          {menuItem("/rooms", "Rooms")}
-          {menuItem("/applications", "Applications")}
+          {role === "STUDENT" ? (
+            <>
+              {menuItem("/student", "Student Dashboard")}
+              {menuItem("/student/application", "Create Application")}
+              {menuItem("/student/my-applications", "My Applications")}
+            </>
+          ) : (
+            <>
+              {menuItem("/dashboard", "Dashboard")}
+              {menuItem("/rooms", "Rooms")}
+              {menuItem("/applications", "Applications")}
+            </>
+          )}
         </div>
       </div>
 
