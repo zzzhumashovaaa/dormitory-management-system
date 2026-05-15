@@ -22,4 +22,11 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+
+    @ManyToOne
+    @JoinColumn(name = "room_id")
+    private Room room;
 }
