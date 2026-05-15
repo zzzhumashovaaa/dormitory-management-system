@@ -18,6 +18,7 @@ export default function LoginPage() {
             });
 
             localStorage.setItem("token", response.data.token);
+            window.location.href = "/dashboard";
 
             alert("Login successful");
 
