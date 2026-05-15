@@ -20,6 +20,7 @@ public class ApplicationService {
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
 
+
     public DormitoryApplication createApplication(ApplicationRequest request, User student) {
 
         DormitoryApplication application = DormitoryApplication.builder()
