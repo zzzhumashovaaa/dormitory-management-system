@@ -6,6 +6,7 @@ import com.dormitory.backend.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import com.dormitory.backend.dto.LoginRequest;
+import com.dormitory.backend.dto.LoginRequest;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -19,11 +20,14 @@ public class AuthController {
 
         String message = authService.register(request);
 
-        return new AuthResponse(message);
+        return new AuthResponse(message, null);
     }
+
     @PostMapping("/login")
     public AuthResponse login(@RequestBody LoginRequest request) {
-        String message = authService.login(request);
-        return new AuthResponse(message);
+
+        String token = authService.login(request);
+
+        return new AuthResponse("Login successful", token);
     }
 }

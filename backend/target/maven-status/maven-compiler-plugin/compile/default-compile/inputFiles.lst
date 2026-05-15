@@ -7,5 +7,6 @@
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/entity/Role.java
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/entity/User.java
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/repository/UserRepository.java
+/Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/security/JwtService.java
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/security/SecurityConfig.java
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/service/AuthService.java
