@@ -1,5 +1,6 @@
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/BackendApplication.java
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/controller/AuthController.java
+/Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/controller/UserController.java
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/dto/AuthResponse.java
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/dto/LoginRequest.java
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/dto/RegisterRequest.java
@@ -7,6 +8,7 @@
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/entity/Role.java
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/entity/User.java
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/repository/UserRepository.java
+/Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/security/JwtAuthenticationFilter.java
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/security/JwtService.java
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/security/SecurityConfig.java
 /Users/aizhan/dormitory-management-system/backend/src/main/java/com/dormitory/backend/service/AuthService.java
