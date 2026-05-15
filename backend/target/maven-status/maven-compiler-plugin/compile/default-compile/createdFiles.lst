@@ -1,4 +1,6 @@
+com/dormitory/backend/entity/RoomStatus.class
 com/dormitory/backend/security/JwtAuthenticationFilter.class
+com/dormitory/backend/entity/Room$RoomBuilder.class
 com/dormitory/backend/security/SecurityConfig.class
 com/dormitory/backend/service/AuthService.class
 com/dormitory/backend/entity/User.class
@@ -6,9 +8,15 @@ com/dormitory/backend/dto/RegisterRequest.class
 com/dormitory/backend/dto/AuthResponse.class
 com/dormitory/backend/dto/LoginRequest.class
 com/dormitory/backend/controller/UserController.class
+com/dormitory/backend/controller/RoomController.class
+com/dormitory/backend/entity/Gender.class
 com/dormitory/backend/entity/BaseEntity.class
+com/dormitory/backend/dto/RoomRequest.class
 com/dormitory/backend/entity/Role.class
 com/dormitory/backend/repository/UserRepository.class
 com/dormitory/backend/security/JwtService.class
+com/dormitory/backend/repository/RoomRepository.class
 com/dormitory/backend/controller/AuthController.class
+com/dormitory/backend/entity/Room.class
 com/dormitory/backend/BackendApplication.class
+com/dormitory/backend/service/RoomService.class
