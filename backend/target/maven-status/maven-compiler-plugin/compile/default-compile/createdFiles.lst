@@ -11,6 +11,7 @@ com/dormitory/backend/service/ApplicationService.class
 com/dormitory/backend/BackendApplication.class
 com/dormitory/backend/service/RoomService.class
 com/dormitory/backend/entity/ApplicationStatus.class
+com/dormitory/backend/config/DataInitializer.class
 com/dormitory/backend/entity/RoomStatus.class
 com/dormitory/backend/entity/DormitoryApplication$DormitoryApplicationBuilder.class
 com/dormitory/backend/security/JwtAuthenticationFilter.class
