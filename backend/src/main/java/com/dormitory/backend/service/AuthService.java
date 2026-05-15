@@ -1,5 +1,6 @@
 package com.dormitory.backend.service;
 
+import com.dormitory.backend.dto.AuthResponse;
 import com.dormitory.backend.dto.RegisterRequest;
 import com.dormitory.backend.entity.Role;
 import com.dormitory.backend.entity.User;
@@ -37,7 +38,7 @@ public class AuthService {
         return "User registered successfully";
     }
 
-    public String login(LoginRequest request) {
+    public AuthResponse login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -46,6 +47,12 @@ public class AuthService {
             throw new RuntimeException("Invalid password");
         }
 
-        return jwtService.generateToken(user);
+        String token = jwtService.generateToken(user);
+
+        return new AuthResponse(
+                "Login successful",
+                token,
+                user.getRole()
+        );
     }
 }

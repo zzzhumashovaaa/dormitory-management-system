@@ -9,6 +9,9 @@ import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import RoomsPage from "./pages/RoomsPage";
 import ApplicationsPage from "./pages/ApplicationsPage";
+import StudentDashboard from "./pages/StudentDashboard";
+import CreateApplicationPage from "./pages/CreateApplicationPage";
+import MyApplicationsPage from "./pages/MyApplicationsPage";
 
 function App() {
   const token = localStorage.getItem("token");
@@ -50,6 +53,20 @@ function App() {
               ? <ApplicationsPage />
               : <Navigate to="/" />
           }
+        />
+        <Route
+          path="/student"
+          element={<StudentDashboard />}
+        />
+
+        <Route
+          path="/student/application"
+          element={<CreateApplicationPage />}
+        />
+
+        <Route
+          path="/student/my-applications"
+          element={<MyApplicationsPage />}
         />
       </Routes>
     </BrowserRouter>

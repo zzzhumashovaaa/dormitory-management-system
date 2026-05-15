@@ -11,18 +11,26 @@ export default function LoginPage() {
         e.preventDefault();
 
         try {
+  const response = await api.post("/auth/login", {
+    email,
+    password,
+  });
 
-            const response = await api.post("/auth/login", {
-                email,
-                password
-            });
+  console.log("LOGIN RESPONSE:", response.data);
 
-            localStorage.setItem("token", response.data.token);
-            window.location.href = "/dashboard";
+  localStorage.setItem("token", response.data.token);
 
-            alert("Login successful");
+  if (response.data.role) {
+    localStorage.setItem("role", response.data.role);
+  }
 
-        } catch (error) {
+  if (response.data.role === "STUDENT") {
+    window.location.href = "/student";
+  } else {
+    window.location.href = "/dashboard";
+  }
+
+} catch (error) {
     console.log("FULL ERROR:", error);
     console.log("STATUS:", error.response?.status);
     console.log("DATA:", error.response?.data);
