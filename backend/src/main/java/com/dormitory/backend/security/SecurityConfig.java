@@ -49,7 +49,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/rooms/**")
                         .hasAnyRole("ADMIN", "MANAGER")
 
+
                         .requestMatchers("/api/applications/**")
+                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+                        .requestMatchers("/api/complaints/**")
                         .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
 
                         .anyRequest().authenticated()
