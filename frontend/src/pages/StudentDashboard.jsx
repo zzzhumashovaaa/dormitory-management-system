@@ -64,7 +64,7 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-8 rounded-2xl shadow">
           <h2 className="text-2xl font-bold mb-3">
             Dormitory Application
@@ -98,6 +98,31 @@ export default function StudentDashboard() {
             View Applications
           </Link>
         </div>
+        <div className="bg-white p-8 rounded-2xl shadow">
+  <h2 className="text-2xl font-bold mb-3">
+    Complaints
+  </h2>
+
+  <p className="text-gray-500 mb-6">
+    Submit and track dormitory complaints
+  </p>
+
+  <div className="flex gap-3">
+    <Link
+      to="/student/complaint"
+      className="bg-red-600 text-white px-5 py-3 rounded-lg"
+    >
+      Create
+    </Link>
+
+    <Link
+      to="/student/my-complaints"
+      className="bg-gray-800 text-white px-5 py-3 rounded-lg"
+    >
+      My Complaints
+    </Link>
+  </div>
+</div>
       </div>
 
       <div className="grid grid-cols-2 gap-6">

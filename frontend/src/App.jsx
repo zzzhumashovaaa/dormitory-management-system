@@ -10,6 +10,9 @@ import DashboardPage from "./pages/DashboardPage";
 import RoomsPage from "./pages/RoomsPage";
 import ApplicationsPage from "./pages/ApplicationsPage";
 import RegisterPage from "./pages/RegisterPage";
+import ComplaintsPage from "./pages/ComplaintsPage";
+import CreateComplaintPage from "./pages/CreateComplaintPage";
+import MyComplaintsPage from "./pages/MyComplaintsPage";
 
 import StudentDashboard from "./pages/StudentDashboard";
 import CreateApplicationPage from "./pages/CreateApplicationPage";
@@ -63,6 +66,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+  path="/complaints"
+  element={
+    <ProtectedRoute allowedRoles={["ADMIN", "MANAGER"]}>
+      <ComplaintsPage />
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="/student"
@@ -90,6 +101,23 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+  path="/student/complaint"
+  element={
+    <ProtectedRoute allowedRoles={["STUDENT"]}>
+      <CreateComplaintPage />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/student/my-complaints"
+  element={
+    <ProtectedRoute allowedRoles={["STUDENT"]}>
+      <MyComplaintsPage />
+    </ProtectedRoute>
+  }
+/>
       </Routes>
     </BrowserRouter>
   );
