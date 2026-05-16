@@ -20,9 +20,7 @@ public class ApplicationService {
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
 
-
     public DormitoryApplication createApplication(ApplicationRequest request, User student) {
-
         DormitoryApplication application = DormitoryApplication.builder()
                 .type(request.getType())
                 .message(request.getMessage())
@@ -59,54 +57,59 @@ public class ApplicationService {
 
             User student = application.getStudent();
 
-            if (student.getGender() == null) {
-                throw new RuntimeException("Student gender is not specified");
-            }
+            if (student.getRoom() == null) {
 
-            List<Room> availableRooms = roomRepository.findByGenderAndStatus(
-                    student.getGender(),
-                    RoomStatus.ACTIVE
-            );
+                List<Room> availableRooms =
+                        roomRepository.findByGenderAndStatus(
+                                student.getGender(),
+                                RoomStatus.ACTIVE
+                        );
 
-            Room selectedRoom = null;
+                Room selectedRoom = null;
 
-            for (Room room : availableRooms) {
+                for (Room room : availableRooms) {
 
-                if (room.getOccupiedCount() < room.getCapacity()) {
-                    selectedRoom = room;
-                    break;
+                    int occupied = room.getOccupiedCount() == null
+                            ? 0
+                            : room.getOccupiedCount();
+
+                    if (occupied < room.getCapacity()) {
+                        selectedRoom = room;
+                        break;
+                    }
                 }
+
+                if (selectedRoom == null) {
+                    throw new RuntimeException(
+                            "No available room for this student"
+                    );
+                }
+
+                student.setRoom(selectedRoom);
+
+                int occupied = selectedRoom.getOccupiedCount() == null
+                        ? 0
+                        : selectedRoom.getOccupiedCount();
+
+                selectedRoom.setOccupiedCount(occupied + 1);
+
+                if (selectedRoom.getOccupiedCount()
+                        >= selectedRoom.getCapacity()) {
+
+                    selectedRoom.setStatus(RoomStatus.FULL);
+                }
+
+                roomRepository.save(selectedRoom);
+                userRepository.save(student);
             }
-
-            if (selectedRoom == null) {
-                throw new RuntimeException("No available rooms");
-            }
-
-            student.setRoom(selectedRoom);
-
-            selectedRoom.setOccupiedCount(
-                    selectedRoom.getOccupiedCount() + 1
-            );
-
-            if (selectedRoom.getOccupiedCount()
-                    .equals(selectedRoom.getCapacity())) {
-
-                selectedRoom.setStatus(RoomStatus.FULL);
-            }
-
-            userRepository.save(student);
-            roomRepository.save(selectedRoom);
         }
 
         return applicationRepository.save(application);
     }
 
     public String deleteApplication(Long id) {
-
         DormitoryApplication application = getApplicationById(id);
-
         applicationRepository.delete(application);
-
         return "Application deleted successfully";
     }
 }

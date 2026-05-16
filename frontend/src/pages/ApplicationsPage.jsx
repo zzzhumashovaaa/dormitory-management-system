@@ -17,11 +17,18 @@ export default function ApplicationsPage() {
 
   const updateStatus = async (id, status) => {
     try {
-      await api.put(`/applications/${id}/status?status=${status}`);
+      await api.put(`/applications/${id}/status`, {
+        status,
+      });
+
       fetchApplications();
     } catch (error) {
       console.log("STATUS ERROR:", error);
-      alert("Failed to update status");
+
+      alert(
+        "Failed to update status: " +
+          (error.response?.data?.message || error.message)
+      );
     }
   };
 
@@ -32,8 +39,13 @@ export default function ApplicationsPage() {
   return (
     <DashboardLayout>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Applications</h1>
-        <p className="text-gray-500">Review and manage student applications</p>
+        <h1 className="text-3xl font-bold">
+          Applications
+        </h1>
+
+        <p className="text-gray-500">
+          Review and manage student applications
+        </p>
       </div>
 
       <div className="bg-white rounded-xl shadow overflow-hidden">
@@ -42,60 +54,93 @@ export default function ApplicationsPage() {
             <tr>
               <th className="p-4">ID</th>
               <th className="p-4">Student</th>
+              <th className="p-4">Gender</th>
               <th className="p-4">Type</th>
-              <th className="p-4">Text</th>
+              <th className="p-4">Message</th>
               <th className="p-4">Status</th>
+              <th className="p-4">Assigned Room</th>
               <th className="p-4">Actions</th>
             </tr>
           </thead>
 
           <tbody>
-            {applications.map((app) => (
-              <tr key={app.id} className="border-t">
-                <td className="p-4">{app.id}</td>
-                <td className="p-4 font-semibold">
-                  {app.studentName || "Student"}
-                </td>
-                <td className="p-4">{app.type}</td>
-                <td className="p-4">{app.text}</td>
-                <td className="p-4">
-                  <span className="px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-700">
-                    {app.status}
-                  </span>
-                </td>
-                <td className="p-4 flex gap-2">
-                    <button
-                        disabled={
-                            app.status === "APPROVED" ||
-                            app.status === "REJECTED"
-                            }
-                        onClick={() => updateStatus(app.id, "APPROVED")}
-                        className={`px-3 py-1 rounded-lg text-white ${
+            {applications.map((app) => {
+              const isFinal =
+                app.status === "APPROVED" ||
+                app.status === "REJECTED";
+
+              return (
+                <tr key={app.id} className="border-t">
+                  <td className="p-4">
+                    {app.id}
+                  </td>
+
+                  <td className="p-4 font-semibold">
+                    {app.student?.fullName || "Unknown student"}
+                  </td>
+
+                  <td className="p-4">
+                    {app.student?.gender || "-"}
+                  </td>
+
+                  <td className="p-4">
+                    {app.type}
+                  </td>
+
+                  <td className="p-4">
+                    {app.message}
+                  </td>
+
+                  <td className="p-4">
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm ${
                         app.status === "APPROVED"
-                            ? "bg-gray-400 cursor-not-allowed"
-                            : "bg-green-600 hover:bg-green-700"
-                        }`}
+                          ? "bg-green-100 text-green-700"
+                          : app.status === "REJECTED"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
                     >
-                        Approve
+                      {app.status}
+                    </span>
+                  </td>
+
+                  <td className="p-4 font-semibold">
+                    {app.student?.room?.roomNumber || "-"}
+                  </td>
+
+                  <td className="p-4 flex gap-2">
+                    <button
+                      disabled={isFinal}
+                      onClick={() =>
+                        updateStatus(app.id, "APPROVED")
+                      }
+                      className={`px-3 py-1 rounded-lg text-white ${
+                        isFinal
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-green-600 hover:bg-green-700"
+                      }`}
+                    >
+                      Approve
                     </button>
 
                     <button
-                        disabled={
-                            app.status === "APPROVED" ||
-                            app.status === "REJECTED"
-                            }
-                        onClick={() => updateStatus(app.id, "REJECTED")}
-                        className={`px-3 py-1 rounded-lg text-white ${
-                        app.status === "APPROVED"
-                            ? "bg-gray-400 cursor-not-allowed"
-                            : "bg-red-600 hover:bg-red-700"
-                        }`}
+                      disabled={isFinal}
+                      onClick={() =>
+                        updateStatus(app.id, "REJECTED")
+                      }
+                      className={`px-3 py-1 rounded-lg text-white ${
+                        isFinal
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-red-600 hover:bg-red-700"
+                      }`}
                     >
-                        Reject
+                      Reject
                     </button>
-                    </td>
-              </tr>
-            ))}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 

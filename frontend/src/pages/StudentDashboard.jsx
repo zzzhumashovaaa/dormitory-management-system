@@ -1,21 +1,70 @@
+import { useEffect, useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { Link } from "react-router-dom";
+import api from "../api/axios";
 
 export default function StudentDashboard() {
+  const [user, setUser] = useState(null);
+  const [applications, setApplications] = useState([]);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await api.get("/users/me");
+      setUser(response.data);
+    } catch (error) {
+      console.log("USER ME ERROR:", error);
+    }
+  };
+
+  const fetchMyApplications = async () => {
+    try {
+      const response = await api.get("/applications/my");
+      setApplications(response.data);
+    } catch (error) {
+      console.log("MY APPLICATIONS ERROR:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCurrentUser();
+    fetchMyApplications();
+  }, []);
+
+  const latestApplication = applications[0];
+
   return (
     <DashboardLayout>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">
-          Student Dashboard
-        </h1>
-
+        <h1 className="text-3xl font-bold">Student Dashboard</h1>
         <p className="text-gray-500">
-          Dormitory student panel
+          Welcome, {user?.fullName || "Student"}
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-3 gap-6 mb-8">
+        <div className="bg-white p-6 rounded-2xl shadow">
+          <p className="text-gray-500 mb-2">Full Name</p>
+          <h2 className="text-2xl font-bold">
+            {user?.fullName || "-"}
+          </h2>
+        </div>
 
+        <div className="bg-white p-6 rounded-2xl shadow">
+          <p className="text-gray-500 mb-2">Email</p>
+          <h2 className="text-lg font-bold">
+            {user?.email || "-"}
+          </h2>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow">
+          <p className="text-gray-500 mb-2">Gender</p>
+          <h2 className="text-2xl font-bold">
+            {user?.gender || "-"}
+          </h2>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-6 mb-8">
         <div className="bg-white p-8 rounded-2xl shadow">
           <h2 className="text-2xl font-bold mb-3">
             Dormitory Application
@@ -49,7 +98,87 @@ export default function StudentDashboard() {
             View Applications
           </Link>
         </div>
+      </div>
 
+      <div className="grid grid-cols-2 gap-6">
+        <div className="bg-white p-8 rounded-2xl shadow">
+          <h2 className="text-2xl font-bold mb-6">
+            Assigned Room
+          </h2>
+
+          {user?.room ? (
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <p className="text-gray-500">Room Number</p>
+                <p className="text-2xl font-bold">
+                  {user.room.roomNumber}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-gray-500">Status</p>
+                <p className="text-2xl font-bold">
+                  {user.room.status}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-gray-500">Occupancy</p>
+                <p className="text-2xl font-bold">
+                  {user.room.occupiedCount} / {user.room.capacity}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-gray-500">Gender</p>
+                <p className="text-2xl font-bold">
+                  {user.room.gender}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-500">
+              No room assigned yet. Please wait until your application is approved.
+            </p>
+          )}
+        </div>
+
+        <div className="bg-white p-8 rounded-2xl shadow">
+          <h2 className="text-2xl font-bold mb-6">
+            Latest Application
+          </h2>
+
+          {latestApplication ? (
+            <div>
+              <p className="text-gray-500 mb-2">Type</p>
+              <p className="text-xl font-bold mb-4">
+                {latestApplication.type}
+              </p>
+
+              <p className="text-gray-500 mb-2">Status</p>
+              <span
+                className={`px-4 py-2 rounded-full text-sm ${
+                  latestApplication.status === "APPROVED"
+                    ? "bg-green-100 text-green-700"
+                    : latestApplication.status === "REJECTED"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-yellow-100 text-yellow-700"
+                }`}
+              >
+                {latestApplication.status}
+              </span>
+
+              <p className="text-gray-500 mt-6 mb-2">Message</p>
+              <p className="text-gray-700">
+                {latestApplication.message || "-"}
+              </p>
+            </div>
+          ) : (
+            <p className="text-gray-500">
+              You have not submitted any applications yet.
+            </p>
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );

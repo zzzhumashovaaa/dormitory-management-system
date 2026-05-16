@@ -9,6 +9,7 @@ import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import RoomsPage from "./pages/RoomsPage";
 import ApplicationsPage from "./pages/ApplicationsPage";
+import RegisterPage from "./pages/RegisterPage";
 
 import StudentDashboard from "./pages/StudentDashboard";
 import CreateApplicationPage from "./pages/CreateApplicationPage";
@@ -34,6 +35,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={redirectByRole()} />
+        <Route path="/register" element={<RegisterPage />} />
 
         <Route
           path="/dashboard"

@@ -72,11 +72,16 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                 />
 
-                <button
-                    className="w-full bg-black text-white p-4 rounded-2xl hover:opacity-90"
-                >
-                    Login
-                </button>
+                <button className="w-full bg-black text-white p-4 rounded-2xl hover:opacity-90">
+  Login
+</button>
+
+<p className="text-center text-gray-500 mt-6">
+  Don’t have an account?{" "}
+  <a href="/register" className="text-black font-semibold">
+    Register
+  </a>
+</p>
 
             </form>
 
