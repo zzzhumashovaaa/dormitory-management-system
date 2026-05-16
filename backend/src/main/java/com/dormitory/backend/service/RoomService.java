@@ -21,17 +21,13 @@ public class RoomService {
             throw new RuntimeException("Room already exists");
         }
 
-        RoomStatus status = request.getStatus();
+        RoomStatus status = request.getStatus() == null
+                ? RoomStatus.ACTIVE
+                : request.getStatus();
 
-        if (status == null) {
-            status = RoomStatus.ACTIVE;
-        }
-
-        Integer occupiedCount = request.getOccupiedCount();
-
-        if (occupiedCount == null) {
-            occupiedCount = 0;
-        }
+        Integer occupiedCount = request.getOccupiedCount() == null
+                ? 0
+                : request.getOccupiedCount();
 
         Room room = Room.builder()
                 .roomNumber(request.getRoomNumber())
@@ -57,11 +53,33 @@ public class RoomService {
 
         Room room = getRoomById(id);
 
-        room.setRoomNumber(request.getRoomNumber());
-        room.setCapacity(request.getCapacity());
-        room.setOccupiedCount(request.getOccupiedCount());
-        room.setGender(request.getGender());
-        room.setStatus(request.getStatus());
+        if (request.getRoomNumber() != null) {
+            room.setRoomNumber(request.getRoomNumber());
+        }
+
+        if (request.getCapacity() != null) {
+            room.setCapacity(request.getCapacity());
+        }
+
+        if (request.getOccupiedCount() != null) {
+            room.setOccupiedCount(request.getOccupiedCount());
+        }
+
+        if (request.getGender() != null) {
+            room.setGender(request.getGender());
+        }
+
+        if (request.getStatus() != null) {
+            room.setStatus(request.getStatus());
+        }
+
+        if (room.getOccupiedCount() != null && room.getCapacity() != null) {
+            if (room.getOccupiedCount() >= room.getCapacity()) {
+                room.setStatus(RoomStatus.FULL);
+            } else if (room.getStatus() == RoomStatus.FULL) {
+                room.setStatus(RoomStatus.ACTIVE);
+            }
+        }
 
         return roomRepository.save(room);
     }
@@ -69,7 +87,6 @@ public class RoomService {
     public String deleteRoom(Long id) {
 
         Room room = getRoomById(id);
-
         roomRepository.delete(room);
 
         return "Room deleted successfully";

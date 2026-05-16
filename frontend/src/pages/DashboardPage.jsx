@@ -24,9 +24,9 @@ export default function DashboardPage() {
 
   const totalRooms = rooms.length;
 
-  const availableRooms = rooms.filter(
-    (room) => room.status === "AVAILABLE"
-  ).length;
+ const availableRooms = rooms.filter(
+  (room) => room.status === "ACTIVE"
+).length;
 
   const fullRooms = rooms.filter(
     (room) => room.status === "FULL"
@@ -43,6 +43,12 @@ export default function DashboardPage() {
   const rejectedApplications = applications.filter(
     (app) => app.status === "REJECTED"
   ).length;
+  const totalBeds = rooms.reduce((sum, room) => sum + (room.capacity || 0), 0);
+
+const occupiedBeds = rooms.reduce(
+  (sum, room) => sum + (room.occupiedCount || 0),
+  0
+);
 
   return (
     <DashboardLayout>
@@ -126,6 +132,25 @@ export default function DashboardPage() {
             {rejectedApplications}
           </h2>
         </div>
+        <div className="bg-white p-6 rounded-xl shadow">
+  <p className="text-gray-500 mb-2">
+    Total Beds
+  </p>
+
+  <h2 className="text-4xl font-bold text-indigo-600">
+    {totalBeds}
+  </h2>
+</div>
+
+<div className="bg-white p-6 rounded-xl shadow">
+  <p className="text-gray-500 mb-2">
+    Occupied Beds
+  </p>
+
+  <h2 className="text-4xl font-bold text-orange-600">
+    {occupiedBeds}
+  </h2>
+</div>
       </div>
     </DashboardLayout>
   );

@@ -3,13 +3,14 @@ package com.dormitory.backend.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -40,14 +41,16 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        .requestMatchers("/api/users/me").hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+                        .requestMatchers("/api/users/me")
+                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
 
-                        .requestMatchers("/api/rooms/**").hasRole("ADMIN")
+                        .requestMatchers("/api/rooms/**")
+                        .hasAnyRole("ADMIN", "MANAGER")
 
-                        .requestMatchers("/api/applications/my").hasRole("STUDENT")
-                        .requestMatchers("/api/applications").hasAnyRole("STUDENT", "MANAGER", "ADMIN")
-                        .requestMatchers("/api/applications/**").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers("/api/applications/**")
+                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
 
                         .anyRequest().authenticated()
                 )
@@ -63,8 +66,13 @@ public class SecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://localhost:3000"
+        ));
+        configuration.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        ));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
