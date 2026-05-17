@@ -41,12 +41,14 @@ export default function Sidebar() {
               {menuItem("/student", "Student Dashboard")}
               {menuItem("/student/application", "Create Application")}
               {menuItem("/student/my-applications", "My Applications")}
+              {menuItem("/student/notifications", "Notifications")}
             </>
           ) : (
             <>
               {menuItem("/dashboard", "Dashboard")}
               {menuItem("/rooms", "Rooms")}
               {menuItem("/applications", "Applications")}
+              {menuItem("/notifications", "Notifications")}
             </>
           )}
         </div>

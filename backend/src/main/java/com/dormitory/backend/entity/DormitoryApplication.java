@@ -14,6 +14,9 @@ import java.time.LocalDateTime;
 @Builder
 public class DormitoryApplication {
 
+    @Column(columnDefinition = "TEXT")
+    private String adminComment;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
