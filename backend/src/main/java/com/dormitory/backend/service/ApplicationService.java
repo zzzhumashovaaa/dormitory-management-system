@@ -9,6 +9,7 @@ import com.dormitory.backend.repository.RoomRepository;
 import com.dormitory.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,22 +23,17 @@ public class ApplicationService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
 
-    public DormitoryApplication createApplication(
-            ApplicationRequest request,
-            User student
-    ) {
-        DormitoryApplication application =
-                DormitoryApplication.builder()
-                        .type(request.getType())
-                        .message(request.getMessage())
-                        .status(ApplicationStatus.PENDING)
-                        .student(student)
-                        .createdAt(LocalDateTime.now())
-                        .updatedAt(LocalDateTime.now())
-                        .build();
+    public DormitoryApplication createApplication(ApplicationRequest request, User student) {
+        DormitoryApplication application = DormitoryApplication.builder()
+                .type(request.getType())
+                .message(request.getMessage())
+                .status(ApplicationStatus.PENDING)
+                .student(student)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
 
-        DormitoryApplication savedApplication =
-                applicationRepository.save(application);
+        DormitoryApplication savedApplication = applicationRepository.save(application);
 
         notificationService.notifyAdmins(
                 "New application",
@@ -48,10 +44,8 @@ public class ApplicationService {
 
         return savedApplication;
     }
-    public DormitoryApplication requestChanges(
-            Long id,
-            ApplicationRevisionRequest request
-    ) {
+
+    public DormitoryApplication requestChanges(Long id, ApplicationRevisionRequest request) {
         DormitoryApplication application = getApplicationById(id);
 
         application.setStatus(ApplicationStatus.NEEDS_REVISION);
@@ -71,10 +65,7 @@ public class ApplicationService {
         return applicationRepository.save(application);
     }
 
-    public DormitoryApplication resubmitApplication(
-            Long id,
-            String newMessage
-    ) {
+    public DormitoryApplication resubmitApplication(Long id, String newMessage) {
         DormitoryApplication application = getApplicationById(id);
 
         application.setMessage(newMessage);
@@ -92,6 +83,7 @@ public class ApplicationService {
 
         return applicationRepository.save(application);
     }
+
     public List<DormitoryApplication> getAllApplications() {
         return applicationRepository.findAll();
     }
@@ -102,14 +94,11 @@ public class ApplicationService {
 
     public DormitoryApplication getApplicationById(Long id) {
         return applicationRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Application not found"));
+                .orElseThrow(() -> new RuntimeException("Application not found"));
     }
 
-    public DormitoryApplication updateStatus(
-            Long id,
-            ApplicationStatusRequest request
-    ) {
+    @Transactional
+    public DormitoryApplication updateStatus(Long id, ApplicationStatusRequest request) {
         DormitoryApplication application = getApplicationById(id);
 
         application.setStatus(request.getStatus());
@@ -119,20 +108,20 @@ public class ApplicationService {
 
         if (request.getStatus() == ApplicationStatus.APPROVED) {
 
+            if (student.getGender() == null) {
+                throw new RuntimeException("Student gender is required before room assignment");
+            }
+
             if (student.getRoom() == null) {
-                List<Room> availableRooms =
-                        roomRepository.findByGenderAndStatus(
-                                student.getGender(),
-                                RoomStatus.ACTIVE
-                        );
+                List<Room> availableRooms = roomRepository.findByGenderAndStatus(
+                        student.getGender(),
+                        RoomStatus.ACTIVE
+                );
 
                 Room selectedRoom = null;
 
                 for (Room room : availableRooms) {
-                    int occupied =
-                            room.getOccupiedCount() == null
-                                    ? 0
-                                    : room.getOccupiedCount();
+                    int occupied = room.getOccupiedCount() == null ? 0 : room.getOccupiedCount();
 
                     if (occupied < room.getCapacity()) {
                         selectedRoom = room;
@@ -141,22 +130,18 @@ public class ApplicationService {
                 }
 
                 if (selectedRoom == null) {
-                    throw new RuntimeException(
-                            "No available room for this student"
-                    );
+                    throw new RuntimeException("No available room for this student");
                 }
 
                 student.setRoom(selectedRoom);
 
-                int occupied =
-                        selectedRoom.getOccupiedCount() == null
-                                ? 0
-                                : selectedRoom.getOccupiedCount();
+                int occupied = selectedRoom.getOccupiedCount() == null
+                        ? 0
+                        : selectedRoom.getOccupiedCount();
 
                 selectedRoom.setOccupiedCount(occupied + 1);
 
-                if (selectedRoom.getOccupiedCount()
-                        >= selectedRoom.getCapacity()) {
+                if (selectedRoom.getOccupiedCount() >= selectedRoom.getCapacity()) {
                     selectedRoom.setStatus(RoomStatus.FULL);
                 }
 
@@ -166,8 +151,7 @@ public class ApplicationService {
                 notificationService.createNotification(
                         student,
                         "Room assigned",
-                        "You have been assigned to room "
-                                + selectedRoom.getRoomNumber(),
+                        "You have been assigned to room " + selectedRoom.getRoomNumber(),
                         NotificationType.ROOM_ASSIGNED
                 );
             }
@@ -193,9 +177,7 @@ public class ApplicationService {
     }
 
     public String deleteApplication(Long id) {
-        DormitoryApplication application =
-                getApplicationById(id);
-
+        DormitoryApplication application = getApplicationById(id);
         applicationRepository.delete(application);
 
         return "Application deleted successfully";

@@ -52,7 +52,8 @@ public class AuthService {
         return new AuthResponse(
                 "Login successful",
                 token,
-                user.getRole()
+                user.getRole(),
+                user.getId()
         );
     }
 }
