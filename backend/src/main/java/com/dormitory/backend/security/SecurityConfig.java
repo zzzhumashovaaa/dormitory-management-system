@@ -40,18 +40,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
 
-                        .requestMatchers(HttpMethod.PUT, "/api/applications/*/request-changes")
-                        .hasAnyRole("ADMIN", "MANAGER")
-
-                        .requestMatchers(HttpMethod.PUT, "/api/applications/*/status")
-                        .hasAnyRole("ADMIN", "MANAGER")
-
-                        .requestMatchers(HttpMethod.PUT, "/api/applications/*/resubmit")
-                        .hasAnyRole("STUDENT")
+                        .requestMatchers("/api/chats/**")
+                        .authenticated()
 
                         .requestMatchers("/api/users/me")
-                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+                        .authenticated()
 
                         .requestMatchers("/api/rooms/**")
                         .hasAnyRole("ADMIN", "MANAGER")

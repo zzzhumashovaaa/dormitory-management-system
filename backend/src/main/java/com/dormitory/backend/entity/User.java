@@ -26,6 +26,20 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
+    private String studentId;
+
+    private String faculty;
+
+    private String course;
+
+    private String sleepType;
+
+    private String cleanlinessLevel;
+
+    private String noiseTolerance;
+
+    private String hobbies;
+
     @ManyToOne
     @JoinColumn(name = "room_id")
     private Room room;

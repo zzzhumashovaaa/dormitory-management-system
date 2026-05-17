@@ -19,22 +19,24 @@ export default function NotificationsPage() {
   };
 
   const markAsRead = async (id) => {
-    try {
-      await api.put(`/notifications/${id}/read`);
-      fetchNotifications();
-    } catch (error) {
-      console.log("MARK READ ERROR:", error);
-    }
-  };
+  try {
+    await api.put(`/notifications/${id}/read`);
+    await fetchNotifications();
+    window.dispatchEvent(new Event("notifications-updated"));
+  } catch (error) {
+    console.log("MARK READ ERROR:", error);
+  }
+};
 
   const markAllAsRead = async () => {
-    try {
-      await api.put("/notifications/read-all");
-      fetchNotifications();
-    } catch (error) {
-      console.log("MARK ALL READ ERROR:", error);
-    }
-  };
+  try {
+    await api.put("/notifications/read-all");
+    await fetchNotifications();
+    window.dispatchEvent(new Event("notifications-updated"));
+  } catch (error) {
+    console.log("MARK ALL READ ERROR:", error);
+  }
+};
 
   useEffect(() => {
     fetchNotifications();
@@ -61,6 +63,7 @@ export default function NotificationsPage() {
     try {
       if (!notification.readStatus) {
         await api.put(`/notifications/${notification.id}/read`);
+        window.dispatchEvent(new Event("notifications-updated"));
       }
 
       if (!notification.applicationId) {

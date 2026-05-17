@@ -24,6 +24,10 @@ export default function LoginPage() {
     localStorage.setItem("role", response.data.role);
   }
 
+  if (response.data.userId) {
+    localStorage.setItem("userId", response.data.userId);
+  }
+
   if (response.data.role === "STUDENT") {
     window.location.href = "/student";
   } else {

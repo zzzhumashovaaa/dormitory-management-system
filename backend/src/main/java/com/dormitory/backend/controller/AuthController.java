@@ -19,7 +19,7 @@ public class AuthController {
 
         String message = authService.register(request);
 
-        return new AuthResponse(message, null, null);
+        return new AuthResponse(message, null, null, null);
     }
 
     @PostMapping("/login")
