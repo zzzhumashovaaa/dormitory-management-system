@@ -5,7 +5,9 @@ import com.dormitory.backend.entity.Room;
 import com.dormitory.backend.entity.RoomStatus;
 import com.dormitory.backend.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -18,7 +20,10 @@ public class RoomService {
     public Room createRoom(RoomRequest request) {
 
         if (roomRepository.existsByRoomNumber(request.getRoomNumber())) {
-            throw new RuntimeException("Room already exists");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Room already exists"
+            );
         }
 
         RoomStatus status = request.getStatus() == null

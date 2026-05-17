@@ -88,7 +88,7 @@ export default function MyRoomPage() {
 
   return (
     <DashboardLayout>
-      <div className="mb-8 flex justify-between items-start">
+      <div className="mb-6 flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold">My Room</h1>
           <p className="text-gray-500">
@@ -104,7 +104,7 @@ export default function MyRoomPage() {
         </Link>
       </div>
 
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8 rounded-3xl shadow mb-8">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8 rounded-3xl shadow mb-6">
         <div className="flex justify-between items-center">
           <div>
             <p className="text-blue-100 mb-2">Assigned Room</p>
@@ -115,7 +115,7 @@ export default function MyRoomPage() {
           </div>
 
           <div className="bg-white/15 p-6 rounded-2xl text-center min-w-[180px]">
-            <p className="text-blue-100 mb-2">Occupancy</p>
+            <p className="text-blue-100 mb-1">Occupancy</p>
             <h3 className="text-4xl font-bold">
               {occupiedCount}/{capacity}
             </h3>
@@ -125,15 +125,15 @@ export default function MyRoomPage() {
           </div>
         </div>
 
-        <div className="w-full bg-white/20 rounded-full h-4 mt-8">
+        <div className="w-full bg-white/20 rounded-full h-3 mt-4">
           <div
-            className="bg-white h-4 rounded-full"
+            className="bg-white h-3 rounded-full"
             style={{ width: `${occupancyPercent}%` }}
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-3 gap-6 mb-6">
         <div className="bg-white p-6 rounded-2xl shadow">
           <p className="text-gray-500 mb-2">Room Status</p>
           <h2 className="text-3xl font-bold">{room.status}</h2>
@@ -152,7 +152,7 @@ export default function MyRoomPage() {
 
       <div className="grid grid-cols-3 gap-8">
         <div className="col-span-2 bg-white p-8 rounded-3xl shadow">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-3">
             <h2 className="text-2xl font-bold">Roommates</h2>
             <span className="text-sm text-blue-600 font-medium">
               Real room residents
@@ -176,10 +176,10 @@ export default function MyRoomPage() {
                     </div>
 
                     <div>
-                      <h3 className="text-xl font-bold">{student.fullName}</h3>
+                      <h4 className="text-xl font-bold">{student.fullName}</h4>
                       <p className="text-gray-500">{student.email}</p>
 
-                      <div className="flex gap-3 mt-2 text-sm text-gray-600">
+                      <div className="flex gap-3 mt-1 text-sm text-gray-600">
                         <span>{student.faculty || "-"}</span>
                         <span>•</span>
                         <span>{student.course || "-"}</span>
@@ -191,7 +191,7 @@ export default function MyRoomPage() {
 
                   <div className="text-right">
                     <p className="text-sm text-gray-500 mb-1">Compatibility</p>
-                    <h3 className="text-2xl font-bold text-purple-600 mb-3">
+                    <h3 className="text-2xl font-bold text-purple-600 mb-2">
                       {student.compatibility || 80}%
                     </h3>
 
