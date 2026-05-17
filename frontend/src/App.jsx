@@ -17,8 +17,10 @@ import MyComplaintsPage from "./pages/MyComplaintsPage";
 import StudentDashboard from "./pages/StudentDashboard";
 import CreateApplicationPage from "./pages/CreateApplicationPage";
 import MyApplicationsPage from "./pages/MyApplicationsPage";
-
+import NotificationsPage from "./pages/NotificationsPage";
+import ApplicationDetailPage from "./pages/ApplicationDetailPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import StudentApplicationDetailPage from "./pages/StudentApplicationDetailPage";
 
 function App() {
   const token = localStorage.getItem("token");
@@ -48,6 +50,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+  path="/applications/:id"
+  element={
+    <ProtectedRoute allowedRoles={["ADMIN", "MANAGER"]}>
+      <ApplicationDetailPage />
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="/rooms"
@@ -57,7 +67,31 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+  path="/student/notifications"
+  element={
+    <ProtectedRoute allowedRoles={["STUDENT"]}>
+      <NotificationsPage />
+    </ProtectedRoute>
+  }
+/>
 
+<Route
+  path="/student/applications/:id"
+  element={
+    <ProtectedRoute allowedRoles={["STUDENT"]}>
+      <StudentApplicationDetailPage />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/notifications"
+  element={
+    <ProtectedRoute allowedRoles={["ADMIN", "MANAGER"]}>
+      <NotificationsPage />
+    </ProtectedRoute>
+  }
+/>
         <Route
           path="/applications"
           element={

@@ -1,7 +1,9 @@
 package com.dormitory.backend.controller;
 
 import com.dormitory.backend.dto.ApplicationRequest;
+import com.dormitory.backend.dto.ApplicationRevisionRequest;
 import com.dormitory.backend.dto.ApplicationStatusRequest;
+import com.dormitory.backend.dto.ResubmitApplicationRequest;
 import com.dormitory.backend.entity.DormitoryApplication;
 import com.dormitory.backend.entity.User;
 import com.dormitory.backend.service.ApplicationService;
@@ -51,6 +53,28 @@ public class ApplicationController {
         return applicationService.updateStatus(id, request);
     }
 
+    @PutMapping("/{id}/request-changes")
+    public DormitoryApplication requestChanges(
+            @PathVariable Long id,
+            @RequestBody ApplicationRevisionRequest request,
+            Authentication authentication
+    ) {
+        System.out.println("REQUEST CHANGES USER: " + authentication.getName());
+        System.out.println("REQUEST CHANGES AUTHORITIES: " + authentication.getAuthorities());
+
+        return applicationService.requestChanges(id, request);
+    }
+
+    @PutMapping("/{id}/resubmit")
+    public DormitoryApplication resubmitApplication(
+            @PathVariable Long id,
+            @RequestBody ResubmitApplicationRequest request
+    ) {
+        return applicationService.resubmitApplication(
+                id,
+                request.getMessage()
+        );
+    }
     @DeleteMapping("/{id}")
     public String deleteApplication(@PathVariable Long id) {
         return applicationService.deleteApplication(id);

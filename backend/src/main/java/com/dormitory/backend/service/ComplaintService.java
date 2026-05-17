@@ -4,6 +4,7 @@ import com.dormitory.backend.dto.ComplaintRequest;
 import com.dormitory.backend.dto.ComplaintStatusRequest;
 import com.dormitory.backend.entity.Complaint;
 import com.dormitory.backend.entity.ComplaintStatus;
+import com.dormitory.backend.entity.NotificationType;
 import com.dormitory.backend.entity.User;
 import com.dormitory.backend.repository.ComplaintRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +18,13 @@ import java.util.List;
 public class ComplaintService {
 
     private final ComplaintRepository complaintRepository;
+    private final NotificationService notificationService;
 
-    public Complaint createComplaint(ComplaintRequest request, User student) {
+    public Complaint createComplaint(
+            ComplaintRequest request,
+            User student
+    ) {
+
         Complaint complaint = Complaint.builder()
                 .category(request.getCategory())
                 .title(request.getTitle())
@@ -30,8 +36,16 @@ public class ComplaintService {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
+        Complaint savedComplaint = complaintRepository.save(complaint);
 
-        return complaintRepository.save(complaint);
+        notificationService.notifyAdmins(
+                "New complaint",
+                student.getFullName() + " submitted a new complaint: " + request.getTitle(),
+                NotificationType.GENERAL,
+                null
+        );
+
+        return savedComplaint;
     }
 
     public List<Complaint> getAllComplaints() {
@@ -43,22 +57,41 @@ public class ComplaintService {
     }
 
     public Complaint getComplaintById(Long id) {
+
         return complaintRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Complaint not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Complaint not found"));
     }
 
-    public Complaint updateComplaintStatus(Long id, ComplaintStatusRequest request) {
+    public Complaint updateComplaintStatus(
+            Long id,
+            ComplaintStatusRequest request
+    ) {
+
         Complaint complaint = getComplaintById(id);
 
         complaint.setStatus(request.getStatus());
         complaint.setAdminResponse(request.getAdminResponse());
         complaint.setUpdatedAt(LocalDateTime.now());
 
-        return complaintRepository.save(complaint);
+        Complaint updatedComplaint =
+                complaintRepository.save(complaint);
+
+        notificationService.createNotification(
+                complaint.getStudent(),
+                "Complaint updated",
+                "Your complaint status changed to "
+                        + request.getStatus(),
+                NotificationType.COMPLAINT_UPDATED
+        );
+
+        return updatedComplaint;
     }
 
     public String deleteComplaint(Long id) {
+
         Complaint complaint = getComplaintById(id);
+
         complaintRepository.delete(complaint);
 
         return "Complaint deleted successfully";

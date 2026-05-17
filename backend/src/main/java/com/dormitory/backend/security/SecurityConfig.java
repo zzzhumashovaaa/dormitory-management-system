@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,7 +18,6 @@ import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
-@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -39,9 +37,18 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        .requestMatchers(HttpMethod.PUT, "/api/applications/*/request-changes")
+                        .hasAnyRole("ADMIN", "MANAGER")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/applications/*/status")
+                        .hasAnyRole("ADMIN", "MANAGER")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/applications/*/resubmit")
+                        .hasAnyRole("STUDENT")
 
                         .requestMatchers("/api/users/me")
                         .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
@@ -49,10 +56,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/rooms/**")
                         .hasAnyRole("ADMIN", "MANAGER")
 
-
                         .requestMatchers("/api/applications/**")
                         .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+
                         .requestMatchers("/api/complaints/**")
+                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+
+                        .requestMatchers("/api/notifications/**")
                         .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
 
                         .anyRequest().authenticated()
@@ -73,9 +83,11 @@ public class SecurityConfig {
                 "http://localhost:5173",
                 "http://localhost:3000"
         ));
+
         configuration.setAllowedMethods(List.of(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS"
         ));
+
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 

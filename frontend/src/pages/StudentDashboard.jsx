@@ -5,6 +5,7 @@ import api from "../api/axios";
 
 export default function StudentDashboard() {
   const [user, setUser] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [applications, setApplications] = useState([]);
 
   const fetchCurrentUser = async () => {
@@ -15,6 +16,17 @@ export default function StudentDashboard() {
       console.log("USER ME ERROR:", error);
     }
   };
+  const fetchUnreadNotifications = async () => {
+  try {
+    const response = await api.get(
+      "/notifications/unread-count"
+    );
+
+    setUnreadCount(response.data.count);
+  } catch (error) {
+    console.log("NOTIFICATION COUNT ERROR:", error);
+  }
+};
 
   const fetchMyApplications = async () => {
     try {
@@ -25,21 +37,42 @@ export default function StudentDashboard() {
     }
   };
 
-  useEffect(() => {
-    fetchCurrentUser();
-    fetchMyApplications();
-  }, []);
+useEffect(() => {
+  fetchCurrentUser();
+  fetchUnreadNotifications();
+  fetchMyApplications();
+}, []);
 
   const latestApplication = applications[0];
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Student Dashboard</h1>
-        <p className="text-gray-500">
-          Welcome, {user?.fullName || "Student"}
-        </p>
-      </div>
+      <div className="flex justify-between items-start mb-8">
+
+  <div>
+    <h1 className="text-3xl font-bold">
+      Student Dashboard
+    </h1>
+
+    <p className="text-gray-500">
+      Welcome, {user?.fullName || "Student"}
+    </p>
+  </div>
+
+  <Link
+  to="/student/notifications"
+  className="relative bg-white shadow p-4 rounded-2xl hover:bg-gray-50 transition"
+>
+  <span className="text-2xl">🔔</span>
+
+  {unreadCount > 0 && (
+    <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center">
+      {unreadCount}
+    </span>
+  )}
+</Link>
+
+</div>
 
       <div className="grid grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-2xl shadow">
@@ -123,6 +156,7 @@ export default function StudentDashboard() {
     </Link>
   </div>
 </div>
+
       </div>
 
       <div className="grid grid-cols-2 gap-6">
