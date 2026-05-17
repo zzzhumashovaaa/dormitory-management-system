@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -44,6 +45,12 @@ public class ChatController {
         return chatService.getManagerChats(user);
     }
 
+    @GetMapping("/unread-count")
+    public Map<String, Long> getUnreadCount(Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        return Map.of("count", chatService.getTotalUnreadCount(user));
+    }
+
     @GetMapping("/{chatRoomId}/messages")
     public List<ChatMessageResponse> getMessages(
             @PathVariable UUID chatRoomId,
@@ -51,6 +58,16 @@ public class ChatController {
     ) {
         User user = (User) authentication.getPrincipal();
         return chatService.getMessages(chatRoomId, user);
+    }
+
+    @PostMapping("/{chatRoomId}/read")
+    public Map<String, String> markAsRead(
+            @PathVariable UUID chatRoomId,
+            Authentication authentication
+    ) {
+        User user = (User) authentication.getPrincipal();
+        chatService.markAsRead(chatRoomId, user);
+        return Map.of("message", "Chat marked as read");
     }
 
     @PostMapping("/{chatRoomId}/messages")

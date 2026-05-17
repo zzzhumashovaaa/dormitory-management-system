@@ -14,6 +14,8 @@ export default function ChatsPage() {
   const [connected, setConnected] = useState(false);
 
   const stompClientRef = useRef(null);
+  const unreadClientRef = useRef(null);
+  const activeChatRef = useRef(null);
 
   const currentUserId = String(localStorage.getItem("userId"));
   const role = localStorage.getItem("role");
@@ -21,6 +23,29 @@ export default function ChatsPage() {
 
   const isStudent = normalizedRole === "STUDENT";
   const isStaff = normalizedRole === "ADMIN" || normalizedRole === "MANAGER";
+
+  const notifyChatsUpdated = () => {
+    window.dispatchEvent(new Event("chats-updated"));
+  };
+
+  const markChatAsRead = async (chatId) => {
+    if (!chatId) return;
+
+    try {
+      await api.post(`/chats/${chatId}/read`);
+      setRoomChat((prev) =>
+        prev?.id === chatId ? { ...prev, unreadCount: 0 } : prev
+      );
+      setManagerChats((prev) =>
+        prev.map((chat) =>
+          chat.id === chatId ? { ...chat, unreadCount: 0 } : chat
+        )
+      );
+      notifyChatsUpdated();
+    } catch (error) {
+      console.log("MARK CHAT READ ERROR:", error);
+    }
+  };
 
   const fetchInitialChats = async () => {
     try {
@@ -67,6 +92,35 @@ export default function ChatsPage() {
     }
   };
 
+  const refreshChatList = async () => {
+    try {
+      if (isStudent) {
+        try {
+          const roomResponse = await api.get("/chats/my-room");
+          setRoomChat(roomResponse.data);
+        } catch (error) {
+          console.log("REFRESH ROOM CHAT ERROR:", error);
+        }
+
+        try {
+          const managerResponse = await api.get("/chats/manager");
+          setManagerChats([managerResponse.data]);
+        } catch (error) {
+          console.log("REFRESH MANAGER CHAT ERROR:", error);
+        }
+      }
+
+      if (isStaff) {
+        const response = await api.get("/chats/manager/all");
+        setManagerChats(response.data || []);
+      }
+
+      notifyChatsUpdated();
+    } catch (error) {
+      console.log("REFRESH CHATS ERROR:", error);
+    }
+  };
+
   const fetchMessages = async (chatId) => {
     try {
       const response = await api.get(`/chats/${chatId}/messages`);
@@ -93,7 +147,7 @@ export default function ChatsPage() {
       onConnect: () => {
         setConnected(true);
 
-        client.subscribe(`/topic/chats/${chatId}`, (socketMessage) => {
+        client.subscribe(`/topic/chats/${chatId}`, async (socketMessage) => {
           const newMessage = JSON.parse(socketMessage.body);
 
           setMessages((prev) => {
@@ -101,6 +155,10 @@ export default function ChatsPage() {
             if (exists) return prev;
             return [...prev, newMessage];
           });
+
+          if (String(newMessage.senderId) !== currentUserId) {
+            await markChatAsRead(chatId);
+          }
         });
       },
 
@@ -118,13 +176,37 @@ export default function ChatsPage() {
     client.activate();
   };
 
+  const connectUnreadSocket = () => {
+    if (unreadClientRef.current) return;
+
+    const client = new Client({
+      webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+      reconnectDelay: 5000,
+
+      onConnect: () => {
+        client.subscribe("/topic/chats/unread", async () => {
+          await refreshChatList();
+        });
+      },
+
+      onStompError: (frame) => {
+        console.log("UNREAD STOMP ERROR:", frame);
+      },
+    });
+
+    unreadClientRef.current = client;
+    client.activate();
+  };
+
   const openRealChat = async (chat) => {
     if (!chat) return;
 
     setActiveChat(chat);
+    activeChatRef.current = chat;
     setMessage("");
 
     await fetchMessages(chat.id);
+    await markChatAsRead(chat.id);
     connectWebSocket(chat.id);
   };
 
@@ -143,6 +225,7 @@ export default function ChatsPage() {
       });
 
       setMessage("");
+      await markChatAsRead(activeChat.id);
     } catch (error) {
       console.log("SEND MESSAGE ERROR:", error);
       alert(error.response?.data?.message || "Failed to send message");
@@ -151,10 +234,15 @@ export default function ChatsPage() {
 
   useEffect(() => {
     fetchInitialChats();
+    connectUnreadSocket();
 
     return () => {
       if (stompClientRef.current) {
         stompClientRef.current.deactivate();
+      }
+
+      if (unreadClientRef.current) {
+        unreadClientRef.current.deactivate();
       }
     };
   }, []);
@@ -175,7 +263,7 @@ export default function ChatsPage() {
         id: roomChat.id,
         title: roomChat.title,
         type: "Room chat",
-        members: "Room",
+        unreadCount: roomChat.unreadCount || 0,
         lastMessage:
           activeChat?.id === roomChat.id && messages.length > 0
             ? messages[messages.length - 1].message
@@ -190,7 +278,7 @@ export default function ChatsPage() {
         ? chat.studentName || "Student Manager Chat"
         : "Manager Chat",
       type: isStaff ? "Student dormitory question" : "Dormitory questions",
-      members: 2,
+      unreadCount: chat.unreadCount || 0,
       lastMessage:
         activeChat?.id === chat.id && messages.length > 0
           ? messages[messages.length - 1].message
@@ -205,7 +293,7 @@ export default function ChatsPage() {
       id: "ai",
       title: "AI Assistant",
       type: "Platform help",
-      members: 1,
+      unreadCount: 0,
       lastMessage: "Ask how to use applications, QR, profile and room features.",
       real: false,
       data: null,
@@ -224,7 +312,7 @@ export default function ChatsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-8 h-[720px]">
+      <div className="grid grid-cols-3 gap-8 h-[650px]">
         <div className="bg-white rounded-3xl shadow overflow-hidden">
           <div className="p-6 border-b">
             <h2 className="text-xl font-bold">Conversations</h2>
@@ -245,9 +333,11 @@ export default function ChatsPage() {
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-bold">{chat.title}</h3>
 
-                  <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">
-                    {chat.members}
-                  </span>
+                  {chat.unreadCount > 0 && (
+                    <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full">
+                      {chat.unreadCount}
+                    </span>
+                  )}
                 </div>
 
                 <p className="text-sm text-blue-600 font-medium mb-1">

@@ -7,57 +7,60 @@ export default function Sidebar() {
   const role = localStorage.getItem("role");
 
   const [open, setOpen] = useState(true);
-  const [unreadNotifications, setUnreadNotifications] = useState(null);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [unreadChats, setUnreadChats] = useState(0);
 
   const fetchUnreadNotifications = async () => {
     try {
       const response = await api.get("/notifications/unread-count");
       setUnreadNotifications(response.data.count || 0);
     } catch (error) {
-      console.log("SIDEBAR NOTIFICATION COUNT ERROR:", error);
-      setUnreadNotifications(0);
+      console.log(error);
+    }
+  };
+
+  const fetchUnreadChats = async () => {
+    try {
+      const response = await api.get("/chats/unread-count");
+      setUnreadChats(response.data.count || 0);
+    } catch (error) {
+      console.log(error);
     }
   };
 
   useEffect(() => {
     fetchUnreadNotifications();
-
-    const updateListener = () => {
-      fetchUnreadNotifications();
-    };
-
-    window.addEventListener("notifications-updated", updateListener);
-
-    return () => {
-      window.removeEventListener("notifications-updated", updateListener);
-    };
+    fetchUnreadChats();
   }, [location.pathname]);
 
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
+    localStorage.clear();
     window.location.href = "/";
   };
 
   const menuItem = (path, label, icon, badge = null) => {
     const active = location.pathname === path;
-    const showBadge = badge !== null && Number(badge) > 0;
 
     return (
       <Link
         to={path}
-        className={`flex items-center justify-between px-4 py-3 rounded-xl transition ${
+        className={`flex items-center justify-between px-4 py-2.5 rounded-xl transition-all duration-200 ${
           active
-            ? "bg-blue-600 text-white"
-            : "text-gray-300 hover:bg-gray-800 hover:text-white"
+            ? "bg-blue-600 text-white shadow-md"
+            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
         }`}
       >
         <div className="flex items-center gap-3">
           <span className="text-lg font-semibold">{icon}</span>
-          {open && <span className="text-sm font-medium">{label}</span>}
+
+          {open && (
+            <span className="text-sm font-medium">
+              {label}
+            </span>
+          )}
         </div>
 
-        {open && showBadge && (
+        {open && badge > 0 && (
           <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
             {badge}
           </span>
@@ -68,23 +71,28 @@ export default function Sidebar() {
 
   return (
     <div
-      className={`min-h-screen bg-gray-950 text-white p-4 flex flex-col justify-between transition-all duration-300 ${
+      className={`fixed left-0 top-0 h-screen bg-white border-r border-gray-200 text-gray-900 p-4 flex flex-col justify-between transition-all duration-300 overflow-y-auto shadow-sm ${
         open ? "w-64" : "w-20"
       }`}
     >
       <div>
         <button
           onClick={() => setOpen(!open)}
-          className="w-full mb-6 bg-gray-800 hover:bg-gray-700 py-3 rounded-xl"
+          className="w-full mb-6 bg-gray-100 text-gray-700 hover:bg-gray-200 py-2 rounded-xl transition"
         >
           {open ? "Close" : "Menu"}
         </button>
 
         {open && (
           <div className="mb-8">
-            <h1 className="text-2xl font-bold">Dormitory</h1>
-            <p className="text-sm text-gray-400">
-              {role === "STUDENT" ? "Student Panel" : "Admin Panel"}
+            <h1 className="text-2xl font-bold text-gray-900">
+              Dormitory
+            </h1>
+
+            <p className="text-sm text-gray-500">
+              {role === "STUDENT"
+                ? "Student Panel"
+                : "Admin Panel"}
             </p>
           </div>
         )}
@@ -95,17 +103,27 @@ export default function Sidebar() {
               {menuItem("/student", "Dashboard", "D")}
               {menuItem("/student/my-room", "My Room", "R")}
               {menuItem("/student/qr-access", "QR Access", "Q")}
-              {menuItem("/student/chats", "Chats", "H")}
-              {menuItem("/student/application", "Create Application", "A")}
-              {menuItem("/student/my-applications", "My Applications", "M")}
-              {menuItem("/student/complaint", "Create Complaint", "C")}
-              {menuItem("/student/my-complaints", "My Complaints", "L")}
+              {menuItem("/student/chats", "Chats", "H", unreadChats)}
+
+              {menuItem(
+                "/student/applications",
+                "Applications",
+                "A"
+              )}
+
+              {menuItem(
+                "/student/complaints",
+                "Complaints",
+                "C"
+              )}
+
               {menuItem(
                 "/student/notifications",
                 "Notifications",
                 "N",
                 unreadNotifications
               )}
+
               {menuItem("/student/profile", "Profile", "P")}
               {menuItem("/student/settings", "Settings", "S")}
             </>
@@ -115,14 +133,14 @@ export default function Sidebar() {
               {menuItem("/rooms", "Rooms", "R")}
               {menuItem("/applications", "Applications", "A")}
               {menuItem("/complaints", "Complaints", "C")}
-              {menuItem("/chats", "Chats", "H")}
+              {menuItem("/chats", "Chats", "H", unreadChats)}
+
               {menuItem(
                 "/notifications",
                 "Notifications",
                 "N",
                 unreadNotifications
               )}
-              {menuItem("/student/settings", "Settings", "S")}
             </>
           )}
         </div>
@@ -130,7 +148,7 @@ export default function Sidebar() {
 
       <button
         onClick={logout}
-        className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl"
+        className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-xl transition"
       >
         {open ? "Logout" : "X"}
       </button>

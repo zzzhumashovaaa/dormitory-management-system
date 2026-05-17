@@ -17,13 +17,19 @@ public class ChatRoomResponse {
     private String roomNumber;
     private UUID studentId;
     private String studentName;
+    private long unreadCount;
 
     public static ChatRoomResponse from(ChatRoom chatRoom) {
+        return from(chatRoom, 0);
+    }
+
+    public static ChatRoomResponse from(ChatRoom chatRoom, long unreadCount) {
         ChatRoomResponse response = new ChatRoomResponse();
 
         response.setId(chatRoom.getId());
         response.setTitle(chatRoom.getTitle());
         response.setType(chatRoom.getType());
+        response.setUnreadCount(unreadCount);
 
         if (chatRoom.getRoom() != null) {
             response.setRoomNumber(chatRoom.getRoom().getRoomNumber());
