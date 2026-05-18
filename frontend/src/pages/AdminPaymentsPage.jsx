@@ -16,10 +16,17 @@ export default function AdminPaymentsPage() {
 
   const fetchData = async () => {
     try {
-      const [paymentsResponse, studentsResponse] = await Promise.all([
-        api.get("/payments"),
-        api.get("/admin/students"),
-      ]);
+      const role = localStorage.getItem("role");
+
+const studentsEndpoint =
+  role === "ADMIN"
+    ? "/admin/students"
+    : "/users/students";
+
+const [paymentsResponse, studentsResponse] = await Promise.all([
+  api.get("/payments"),
+  api.get(studentsEndpoint),
+]);
 
       setPayments(paymentsResponse.data || []);
       setStudents(studentsResponse.data || []);

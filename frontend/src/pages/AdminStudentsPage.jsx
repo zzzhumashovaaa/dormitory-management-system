@@ -12,7 +12,14 @@ export default function AdminStudentsPage() {
 
   const fetchStudents = async () => {
     try {
-      const response = await api.get("/admin/students");
+      const role = localStorage.getItem("role");
+
+const endpoint =
+  role === "ADMIN"
+    ? "/admin/students"
+    : "/users/students";
+
+const response = await api.get(endpoint);
       setStudents(response.data || []);
     } catch (error) {
       console.log("STUDENTS ERROR:", error);

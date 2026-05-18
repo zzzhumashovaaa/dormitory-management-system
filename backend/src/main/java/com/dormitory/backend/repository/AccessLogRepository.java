@@ -13,4 +13,6 @@ public interface AccessLogRepository extends JpaRepository<AccessLog, UUID> {
     Optional<AccessLog> findTopByStudentOrderByScannedAtDesc(User student);
 
     List<AccessLog> findByStudentOrderByScannedAtDesc(User student);
+
+    List<AccessLog> findAllByOrderByScannedAtDesc();
 }
