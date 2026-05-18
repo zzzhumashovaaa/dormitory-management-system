@@ -18,4 +18,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> findByRole(Role role);
 
     List<User> findByRoomAndRole(Room room, Role role);
+
+    Optional<User> findByStudentId(String studentId);
 }

@@ -2,10 +2,13 @@ package com.dormitory.backend.controller;
 
 import com.dormitory.backend.dto.AuthResponse;
 import com.dormitory.backend.dto.RegisterRequest;
+import com.dormitory.backend.security.JwtService;
 import com.dormitory.backend.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import com.dormitory.backend.dto.LoginRequest;
+import com.dormitory.backend.entity.User;
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -13,6 +16,7 @@ import com.dormitory.backend.dto.LoginRequest;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtService jwtService;
 
     @PostMapping("/register")
     public AuthResponse register(@RequestBody RegisterRequest request) {
@@ -24,6 +28,15 @@ public class AuthController {
 
     @PostMapping("/login")
     public AuthResponse login(@RequestBody LoginRequest request) {
-        return authService.login(request);
+
+        User user = authService.login(request);
+        String token = jwtService.generateToken(user);
+
+        return new AuthResponse(
+                "Login successful",
+                token,
+                user.getRole(),
+                user.getId()
+        );
     }
 }

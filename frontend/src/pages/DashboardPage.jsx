@@ -1,257 +1,192 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
+import api from "../api/axios";
+import { Link } from "react-router-dom";
 
 export default function DashboardPage() {
-  const stats = [
-    {
-      title: "Total Students",
-      value: "248",
-      subtitle: "Active residents",
-      color: "text-blue-600",
-    },
-    {
-      title: "Occupancy Rate",
-      value: "82%",
-      subtitle: "164 / 200 beds filled",
-      color: "text-green-600",
-    },
-    {
-      title: "Pending Applications",
-      value: "12",
-      subtitle: "Waiting for review",
-      color: "text-orange-600",
-    },
-    {
-      title: "Late Entries",
-      value: "5",
-      subtitle: "Recorded this week",
-      color: "text-red-600",
-    },
-  ];
+  const [rooms, setRooms] = useState([]);
+  const [applications, setApplications] = useState([]);
+  const [complaints, setComplaints] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [payments, setPayments] = useState([]);
 
-  const activities = [
-    {
-      title: "New dormitory application",
-      description: "A student submitted a new placement request.",
-      time: "10 min ago",
-      type: "Application",
-    },
-    {
-      title: "Late entry recorded",
-      description: "Student entered the dormitory after 22:00.",
-      time: "35 min ago",
-      type: "QR Access",
-    },
-    {
-      title: "Complaint submitted",
-      description: "Room maintenance issue reported.",
-      time: "1 hour ago",
-      type: "Complaint",
-    },
-    {
-      title: "Room assigned",
-      description: "Student was assigned to Room 405.",
-      time: "2 hours ago",
-      type: "Room",
-    },
-  ];
+  const fetchData = async () => {
+    try {
+      const [
+        roomsResponse,
+        applicationsResponse,
+        complaintsResponse,
+        studentsResponse,
+        paymentsResponse,
+      ] = await Promise.all([
+        api.get("/rooms"),
+        api.get("/applications"),
+        api.get("/complaints"),
+        api.get("/admin/students"),
+        api.get("/payments"),
+      ]);
 
-  const floors = [
-    { floor: "1st Floor", occupied: 72 },
-    { floor: "2nd Floor", occupied: 88 },
-    { floor: "3rd Floor", occupied: 79 },
-    { floor: "4th Floor", occupied: 91 },
-  ];
+      setRooms(roomsResponse.data || []);
+      setApplications(applicationsResponse.data || []);
+      setComplaints(complaintsResponse.data || []);
+      setStudents(studentsResponse.data || []);
+      setPayments(paymentsResponse.data || []);
+    } catch (error) {
+      console.log("DASHBOARD ERROR:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const totalRooms = rooms.length;
+  const totalStudents = students.length;
+
+  const occupiedRooms = rooms.filter(
+    (room) => room.status === "FULL" || room.currentOccupancy >= room.capacity
+  ).length;
+
+  const availableRooms = rooms.filter(
+    (room) => room.status === "ACTIVE" || room.currentOccupancy < room.capacity
+  ).length;
+
+  const pendingApplications = applications.filter(
+    (app) => app.status === "PENDING"
+  );
+
+  const pendingComplaints = complaints.filter(
+    (complaint) => complaint.status === "PENDING"
+  );
+
+  const unpaidPayments = payments.filter((payment) => payment.status !== "PAID");
+
+  const totalDebt = unpaidPayments.reduce(
+    (sum, payment) => sum + Number(payment.amount || 0),
+    0
+  );
 
   return (
     <DashboardLayout>
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <p className="text-gray-500">
-          Monitor dormitory operations, applications, rooms and access activity.
+          Real-time overview of dormitory management system
         </p>
       </div>
 
-      <div className="grid grid-cols-4 gap-6 mb-8">
-        {stats.map((item, index) => (
-          <div key={index} className="bg-white p-6 rounded-2xl shadow">
-            <p className="text-gray-500 mb-2">{item.title}</p>
-            <h2 className={`text-3xl font-bold ${item.color}`}>
-              {item.value}
-            </h2>
-            <p className="text-sm text-gray-400 mt-2">{item.subtitle}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-3 gap-8">
-        <div className="col-span-2 space-y-8">
-          <div className="bg-gradient-to-r from-gray-950 to-blue-900 text-white p-8 rounded-3xl shadow">
-            <h2 className="text-3xl font-bold mb-3">
-              Smart Dormitory Control Center
-            </h2>
-
-            <p className="text-gray-300 mb-6 max-w-2xl">
-              Manage rooms, review applications, track QR access records and
-              monitor student activity from one dashboard.
-            </p>
-
-            <div className="flex gap-4">
-              <Link
-                to="/applications"
-                className="bg-white text-gray-950 px-5 py-3 rounded-xl font-semibold"
-              >
-                Review Applications
-              </Link>
-
-              <Link
-                to="/rooms"
-                className="bg-blue-600 text-white px-5 py-3 rounded-xl font-semibold"
-              >
-                Manage Rooms
-              </Link>
-
-              <Link
-                to="/complaints"
-                className="bg-gray-800 text-white px-5 py-3 rounded-xl font-semibold"
-              >
-                Open Complaints
-              </Link>
-            </div>
-          </div>
-
-          <div className="bg-white p-8 rounded-3xl shadow">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">Recent Activity</h2>
-              <span className="text-sm text-blue-600 font-medium">
-                Live system events
-              </span>
-            </div>
-
-            <div className="space-y-5">
-              {activities.map((activity, index) => (
-                <div
-                  key={index}
-                  className="border rounded-2xl p-5 flex justify-between hover:shadow transition"
-                >
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">
-                        {activity.type}
-                      </span>
-                      <span className="text-sm text-gray-400">
-                        {activity.time}
-                      </span>
-                    </div>
-
-                    <h3 className="font-bold text-lg">{activity.title}</h3>
-                    <p className="text-gray-500">{activity.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-white p-8 rounded-3xl shadow">
-            <h2 className="text-2xl font-bold mb-6">Floor Occupancy</h2>
-
-            <div className="space-y-5">
-              {floors.map((item, index) => (
-                <div key={index}>
-                  <div className="flex justify-between mb-2">
-                    <p className="font-semibold">{item.floor}</p>
-                    <p className="text-gray-500">{item.occupied}%</p>
-                  </div>
-
-                  <div className="w-full bg-gray-200 rounded-full h-4">
-                    <div
-                      className="bg-blue-600 h-4 rounded-full"
-                      style={{ width: `${item.occupied}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="grid md:grid-cols-4 gap-5 mb-8">
+        <div className="bg-white p-6 rounded-2xl shadow">
+          <p className="text-gray-500">Students</p>
+          <h2 className="text-4xl font-bold">{totalStudents}</h2>
+          <p className="text-sm text-gray-400">
+            {totalStudents === 0 ? "No students registered yet" : "Registered users"}
+          </p>
         </div>
 
-        <div className="space-y-8">
-          <div className="bg-white p-7 rounded-3xl shadow">
-            <h2 className="text-xl font-bold mb-5">System Status</h2>
+        <div className="bg-white p-6 rounded-2xl shadow">
+          <p className="text-gray-500">Rooms</p>
+          <h2 className="text-4xl font-bold">{totalRooms}</h2>
+          <p className="text-sm text-gray-400">
+            {availableRooms} available / {occupiedRooms} full
+          </p>
+        </div>
 
-            <div className="space-y-4">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Dormitory</span>
-                <span className="font-bold text-green-600">Active</span>
-              </div>
+        <div className="bg-white p-6 rounded-2xl shadow">
+          <p className="text-gray-500">Pending Applications</p>
+          <h2 className="text-4xl font-bold">{pendingApplications.length}</h2>
+          <p className="text-sm text-gray-400">
+            {pendingApplications.length === 0 ? "No pending applications" : "Need review"}
+          </p>
+        </div>
 
-              <div className="flex justify-between">
-                <span className="text-gray-500">QR Access</span>
-                <span className="font-bold text-green-600">Online</span>
-              </div>
+        <div className="bg-white p-6 rounded-2xl shadow">
+          <p className="text-gray-500">Total Debt</p>
+          <h2 className="text-3xl font-bold">₸ {totalDebt.toLocaleString()}</h2>
+          <p className="text-sm text-gray-400">
+            {unpaidPayments.length} unpaid payments
+          </p>
+        </div>
+      </div>
 
-              <div className="flex justify-between">
-                <span className="text-gray-500">Applications</span>
-                <span className="font-bold text-orange-600">12 pending</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span className="text-gray-500">Complaints</span>
-                <span className="font-bold text-red-600">3 open</span>
-              </div>
-            </div>
+      <div className="grid lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-2xl shadow p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Latest Applications</h2>
+            <Link to="/applications" className="text-blue-600 text-sm">
+              View all
+            </Link>
           </div>
 
-          <div className="bg-white p-7 rounded-3xl shadow">
-            <h2 className="text-xl font-bold mb-5">Quick Management</h2>
-
+          {applications.length === 0 ? (
+            <p className="text-gray-500">No applications yet</p>
+          ) : (
             <div className="space-y-3">
-              <Link
-                to="/rooms"
-                className="block border rounded-2xl p-4 hover:bg-blue-50 transition"
-              >
-                <h3 className="font-bold">Add / Edit Rooms</h3>
-                <p className="text-sm text-gray-500">
-                  Manage room capacity and status.
-                </p>
-              </Link>
+              {applications.slice(0, 5).map((app) => (
+                <Link
+                  key={app.id}
+                  to={`/applications/${app.id}`}
+                  className="block border rounded-xl p-4 hover:bg-gray-50"
+                >
+                  <div className="flex justify-between">
+                    <div>
+                      <p className="font-semibold">
+                        {app.student?.fullName || app.user?.fullName || "Student"}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {app.type || "Application"} — {app.createdAt || ""}
+                      </p>
+                    </div>
 
-              <Link
-                to="/applications"
-                className="block border rounded-2xl p-4 hover:bg-blue-50 transition"
-              >
-                <h3 className="font-bold">Process Applications</h3>
-                <p className="text-sm text-gray-500">
-                  Approve or reject student requests.
-                </p>
-              </Link>
-
-              <Link
-                to="/complaints"
-                className="block border rounded-2xl p-4 hover:bg-blue-50 transition"
-              >
-                <h3 className="font-bold">Handle Complaints</h3>
-                <p className="text-sm text-gray-500">
-                  Review student complaints.
-                </p>
-              </Link>
+                    <span className="text-sm font-semibold">
+                      {app.status || "PENDING"}
+                    </span>
+                  </div>
+                </Link>
+              ))}
             </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-2xl shadow p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Latest Complaints</h2>
+            <Link to="/complaints" className="text-blue-600 text-sm">
+              View all
+            </Link>
           </div>
 
-          <div className="bg-gray-950 text-white p-7 rounded-3xl shadow">
-            <h2 className="text-xl font-bold mb-3">
-              Smart Allocation
-            </h2>
+          {complaints.length === 0 ? (
+            <p className="text-gray-500">No complaints yet</p>
+          ) : (
+            <div className="space-y-3">
+              {complaints.slice(0, 5).map((complaint) => (
+                <Link
+                  key={complaint.id}
+                  to={`/complaints/${complaint.id}`}
+                  className="block border rounded-xl p-4 hover:bg-gray-50"
+                >
+                  <div className="flex justify-between">
+                    <div>
+                      <p className="font-semibold">
+                        {complaint.student?.fullName ||
+                          complaint.user?.fullName ||
+                          "Student"}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {complaint.category || "Complaint"} —{" "}
+                        {complaint.createdAt || ""}
+                      </p>
+                    </div>
 
-            <p className="text-gray-300 text-sm mb-5">
-              Automatic room assignment will match students by gender,
-              available beds and lifestyle compatibility.
-            </p>
-
-            <button className="w-full bg-white text-gray-950 py-3 rounded-xl font-semibold">
-              Run Allocation
-            </button>
-          </div>
+                    <span className="text-sm font-semibold">
+                      {complaint.status || "PENDING"}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

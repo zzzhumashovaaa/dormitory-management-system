@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
 import api from "../api/axios";
 
@@ -8,7 +9,7 @@ export default function ComplaintsPage() {
   const fetchComplaints = async () => {
     try {
       const response = await api.get("/complaints");
-      setComplaints(response.data);
+      setComplaints(response.data || []);
     } catch (error) {
       console.log("COMPLAINTS ERROR:", error);
       alert("Failed to load complaints");
@@ -16,18 +17,15 @@ export default function ComplaintsPage() {
   };
 
   const updateStatus = async (id, status) => {
-    const adminResponse = window.prompt("Admin response:");
-
     try {
       await api.put(`/complaints/${id}/status`, {
         status,
-        adminResponse,
       });
 
       fetchComplaints();
     } catch (error) {
-      console.log("UPDATE COMPLAINT ERROR:", error);
-      alert("Failed to update complaint");
+      console.log("COMPLAINT STATUS ERROR:", error);
+      alert("Failed to update complaint status");
     }
   };
 
@@ -40,77 +38,94 @@ export default function ComplaintsPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Complaints</h1>
         <p className="text-gray-500">
-          Review and manage student complaints
+          Click any complaint to open its detail page.
         </p>
       </div>
 
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      <div className="bg-white rounded-2xl shadow overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-100 text-left">
             <tr>
               <th className="p-4">Student</th>
-              <th className="p-4">Room</th>
-              <th className="p-4">Category</th>
               <th className="p-4">Title</th>
+              <th className="p-4">Category</th>
               <th className="p-4">Status</th>
-              <th className="p-4">Response</th>
               <th className="p-4">Actions</th>
             </tr>
           </thead>
 
           <tbody>
             {complaints.map((complaint) => (
-              <tr key={complaint.id} className="border-t">
-                <td className="p-4 font-semibold">
-                  {complaint.student?.fullName || "-"}
-                </td>
-
+              <tr
+                key={complaint.id}
+                className="border-t hover:bg-blue-50 transition"
+              >
                 <td className="p-4">
-                  {complaint.room?.roomNumber || "-"}
-                </td>
+                  <Link
+                    to={`/complaints/${complaint.id}`}
+                    className="block font-semibold text-blue-700 hover:underline"
+                  >
+                    {complaint.student?.fullName || "Unknown student"}
+                  </Link>
 
-                <td className="p-4">{complaint.category}</td>
-
-                <td className="p-4">
-                  <p className="font-semibold">{complaint.title}</p>
                   <p className="text-sm text-gray-500">
-                    {complaint.description}
+                    {complaint.student?.email || "-"}
                   </p>
                 </td>
 
-                <td className="p-4">{complaint.status}</td>
-
                 <td className="p-4">
-                  {complaint.adminResponse || "-"}
+                  <Link to={`/complaints/${complaint.id}`} className="block">
+                    {complaint.title || "-"}
+                  </Link>
                 </td>
 
-                <td className="p-4 flex gap-2">
-                  <button
-                    onClick={() =>
-                      updateStatus(complaint.id, "IN_PROGRESS")
-                    }
-                    className="bg-yellow-500 text-white px-3 py-1 rounded-lg"
-                  >
-                    In Progress
-                  </button>
+                <td className="p-4">
+                  <Link to={`/complaints/${complaint.id}`} className="block">
+                    {complaint.category || "-"}
+                  </Link>
+                </td>
 
-                  <button
-                    onClick={() =>
-                      updateStatus(complaint.id, "RESOLVED")
-                    }
-                    className="bg-green-600 text-white px-3 py-1 rounded-lg"
-                  >
-                    Resolve
-                  </button>
+                <td className="p-4">
+                  <Link to={`/complaints/${complaint.id}`} className="block">
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        complaint.status === "RESOLVED"
+                          ? "bg-green-100 text-green-700"
+                          : complaint.status === "REJECTED"
+                          ? "bg-red-100 text-red-700"
+                          : complaint.status === "IN_PROGRESS"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      {complaint.status}
+                    </span>
+                  </Link>
+                </td>
 
-                  <button
-                    onClick={() =>
-                      updateStatus(complaint.id, "REJECTED")
-                    }
-                    className="bg-red-600 text-white px-3 py-1 rounded-lg"
-                  >
-                    Reject
-                  </button>
+                <td className="p-4">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => updateStatus(complaint.id, "IN_PROGRESS")}
+                      className="bg-blue-600 text-white px-3 py-2 rounded-lg"
+                    >
+                      In progress
+                    </button>
+
+                    <button
+                      onClick={() => updateStatus(complaint.id, "RESOLVED")}
+                      className="bg-green-600 text-white px-3 py-2 rounded-lg"
+                    >
+                      Resolve
+                    </button>
+
+                    <Link
+                      to={`/complaints/${complaint.id}`}
+                      className="bg-gray-900 text-white px-3 py-2 rounded-lg"
+                    >
+                      Open
+                    </Link>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -119,7 +134,7 @@ export default function ComplaintsPage() {
 
         {complaints.length === 0 && (
           <p className="p-6 text-center text-gray-500">
-            No complaints found
+            No complaints found.
           </p>
         )}
       </div>

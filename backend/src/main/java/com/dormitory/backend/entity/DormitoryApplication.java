@@ -35,6 +35,18 @@ public class DormitoryApplication {
     @ManyToOne
     @JoinColumn(name = "student_id", nullable = false)
     private User student;
+    private Long preferredRoomId;
+
+    private String preferredRoomNumber;
+
+    private String preferredRoommateId;
+
+    private String preferredRoommateName;
+
+    private Integer compatibilityScore;
+
+    @Column(columnDefinition = "TEXT")
+    private String matchingFactors;
 
     private LocalDateTime createdAt;
 

@@ -60,7 +60,7 @@ public class ChatController {
         return chatService.getMessages(chatRoomId, user);
     }
 
-    @PostMapping("/{chatRoomId}/read")
+    @PutMapping("/{chatRoomId}/read")
     public Map<String, String> markAsRead(
             @PathVariable UUID chatRoomId,
             Authentication authentication

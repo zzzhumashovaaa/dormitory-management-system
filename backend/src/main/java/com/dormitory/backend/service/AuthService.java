@@ -1,15 +1,16 @@
 package com.dormitory.backend.service;
 
-import com.dormitory.backend.dto.AuthResponse;
+import com.dormitory.backend.dto.LoginRequest;
 import com.dormitory.backend.dto.RegisterRequest;
 import com.dormitory.backend.entity.Role;
 import com.dormitory.backend.entity.User;
 import com.dormitory.backend.repository.UserRepository;
+import com.dormitory.backend.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import com.dormitory.backend.dto.LoginRequest;
-import com.dormitory.backend.security.JwtService;
+
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -33,12 +34,15 @@ public class AuthService {
         user.setRole(Role.STUDENT);
         user.setGender(request.getGender());
 
+        String studentId = generateStudentId();
+        user.setStudentId(studentId);
+
         userRepository.save(user);
 
         return "User registered successfully";
     }
 
-    public AuthResponse login(LoginRequest request) {
+    public User login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -47,13 +51,12 @@ public class AuthService {
             throw new RuntimeException("Invalid password");
         }
 
-        String token = jwtService.generateToken(user);
+        return user;
+    }
 
-        return new AuthResponse(
-                "Login successful",
-                token,
-                user.getRole(),
-                user.getId()
-        );
+    private String generateStudentId() {
+        Random random = new Random();
+        int number = 100000 + random.nextInt(900000);
+        return "ST" + number;
     }
 }

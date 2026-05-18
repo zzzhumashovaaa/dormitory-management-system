@@ -90,9 +90,7 @@ export default function Sidebar() {
             </h1>
 
             <p className="text-sm text-gray-500">
-              {role === "STUDENT"
-                ? "Student Panel"
-                : "Admin Panel"}
+              {role === "STUDENT" ? "Student Panel" : "Admin Panel"}
             </p>
           </div>
         )}
@@ -104,37 +102,27 @@ export default function Sidebar() {
               {menuItem("/student/my-room", "My Room", "R")}
               {menuItem("/student/qr-access", "QR Access", "Q")}
               {menuItem("/student/chats", "Chats", "H", unreadChats)}
-
-              {menuItem(
-                "/student/applications",
-                "Applications",
-                "A"
-              )}
-
-              {menuItem(
-                "/student/complaints",
-                "Complaints",
-                "C"
-              )}
-
+              {menuItem("/student/applications", "Applications", "A")}
+              {menuItem("/student/complaints", "Complaints", "C")}
+              {menuItem("/student/payments", "Payments", "P")}
               {menuItem(
                 "/student/notifications",
                 "Notifications",
                 "N",
                 unreadNotifications
               )}
-
-              {menuItem("/student/profile", "Profile", "P")}
+              {menuItem("/student/profile", "Profile", "U")}
               {menuItem("/student/settings", "Settings", "S")}
             </>
           ) : (
             <>
               {menuItem("/dashboard", "Dashboard", "D")}
+              {menuItem("/admin/students", "Students", "S")}
               {menuItem("/rooms", "Rooms", "R")}
               {menuItem("/applications", "Applications", "A")}
               {menuItem("/complaints", "Complaints", "C")}
+              {menuItem("/payments", "Payments", "P")}
               {menuItem("/chats", "Chats", "H", unreadChats)}
-
               {menuItem(
                 "/notifications",
                 "Notifications",
