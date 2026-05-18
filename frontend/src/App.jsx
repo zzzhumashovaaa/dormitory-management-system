@@ -4,7 +4,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-
 import DashboardPage from "./pages/DashboardPage";
 import StudentPaymentDetailPage from "./pages/StudentPaymentDetailPage";
 import RoomsPage from "./pages/RoomsPage";

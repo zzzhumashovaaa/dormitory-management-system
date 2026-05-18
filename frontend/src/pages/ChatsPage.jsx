@@ -9,9 +9,18 @@ export default function ChatsPage() {
   const [managerChats, setManagerChats] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [aiMessages, setAiMessages] = useState([
+    {
+      role: "ai",
+      message:
+        "Hi! I am your dormitory AI assistant. Ask me how to change room, check payments, create complaints, use QR or plan activities with roommates.",
+      createdAt: "AI Assistant",
+    },
+  ]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [connected, setConnected] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const stompClientRef = useRef(null);
   const unreadClientRef = useRef(null);
@@ -33,14 +42,17 @@ export default function ChatsPage() {
 
     try {
       await api.put(`/chats/${chatId}/read`);
+
       setRoomChat((prev) =>
         prev?.id === chatId ? { ...prev, unreadCount: 0 } : prev
       );
+
       setManagerChats((prev) =>
         prev.map((chat) =>
           chat.id === chatId ? { ...chat, unreadCount: 0 } : chat
         )
       );
+
       notifyChatsUpdated();
     } catch (error) {
       console.log("MARK CHAT READ ERROR:", error);
@@ -84,6 +96,8 @@ export default function ChatsPage() {
 
       if (firstChat) {
         await openRealChat(firstChat);
+      } else {
+        setActiveChat({ id: "ai", real: false });
       }
     } catch (error) {
       console.log("CHATS INIT ERROR:", error);
@@ -201,7 +215,7 @@ export default function ChatsPage() {
   const openRealChat = async (chat) => {
     if (!chat) return;
 
-    setActiveChat(chat);
+    setActiveChat({ ...chat, real: true });
     activeChatRef.current = chat;
     setMessage("");
 
@@ -210,7 +224,17 @@ export default function ChatsPage() {
     connectWebSocket(chat.id);
   };
 
-  const sendMessage = async () => {
+  const openAiChat = () => {
+    if (stompClientRef.current) {
+      stompClientRef.current.deactivate();
+    }
+
+    setConnected(false);
+    setActiveChat({ id: "ai", real: false });
+    setMessage("");
+  };
+
+  const sendRealMessage = async () => {
     if (!message.trim() || !activeChat?.id) return;
 
     try {
@@ -229,6 +253,61 @@ export default function ChatsPage() {
     } catch (error) {
       console.log("SEND MESSAGE ERROR:", error);
       alert(error.response?.data?.message || "Failed to send message");
+    }
+  };
+
+  const sendAiMessage = async () => {
+    if (!message.trim()) return;
+
+    const userText = message.trim();
+
+    setAiMessages((prev) => [
+      ...prev,
+      {
+        role: "user",
+        message: userText,
+        createdAt: "You",
+      },
+    ]);
+
+    setMessage("");
+    setAiLoading(true);
+
+    try {
+      const response = await api.post("/ai-chat", {
+        message: userText,
+      });
+
+      setAiMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          message: response.data.answer || "AI returned empty response.",
+          createdAt: "AI Assistant",
+        },
+      ]);
+    } catch (error) {
+      console.log("AI CHAT ERROR:", error);
+
+      setAiMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          message:
+            "AI chat is not working now. Check Gemini API key, backend route /api/ai-chat and internet connection.",
+          createdAt: "AI Assistant",
+        },
+      ]);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const sendMessage = () => {
+    if (selectedChat?.id === "ai") {
+      sendAiMessage();
+    } else {
+      sendRealMessage();
     }
   };
 
@@ -303,6 +382,8 @@ export default function ChatsPage() {
   const selectedChat =
     chats.find((chat) => chat.id === activeChat?.id) || chats[0];
 
+  const visibleMessages = selectedChat?.id === "ai" ? aiMessages : messages;
+
   return (
     <DashboardLayout>
       <div className="mb-8">
@@ -323,12 +404,16 @@ export default function ChatsPage() {
               <button
                 key={chat.id}
                 onClick={() => {
-                  if (!chat.real) return;
+                  if (chat.id === "ai") {
+                    openAiChat();
+                    return;
+                  }
+
                   openRealChat(chat.data);
                 }}
                 className={`w-full text-left p-5 hover:bg-blue-50 transition ${
                   selectedChat?.id === chat.id ? "bg-blue-50" : ""
-                } ${!chat.real ? "opacity-60 cursor-not-allowed" : ""}`}
+                }`}
               >
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-bold">{chat.title}</h3>
@@ -364,7 +449,11 @@ export default function ChatsPage() {
               </p>
             </div>
 
-            {selectedChat?.real ? (
+            {selectedChat?.id === "ai" ? (
+              <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
+                AI Online
+              </span>
+            ) : (
               <span
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
                   connected
@@ -374,30 +463,24 @@ export default function ChatsPage() {
               >
                 {connected ? "Live" : "REST mode"}
               </span>
-            ) : (
-              <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
-                Coming soon
-              </span>
             )}
           </div>
 
           <div className="flex-1 p-6 bg-gray-50 overflow-y-auto space-y-4">
-            {!selectedChat?.real ? (
-              <div className="text-center text-gray-500 mt-20">
-                AI Assistant will be connected later.
-              </div>
-            ) : messages.length === 0 ? (
+            {visibleMessages.length === 0 ? (
               <div className="text-center text-gray-500 mt-20">
                 No messages yet. Start the conversation.
               </div>
             ) : (
-              messages.map((msg) => {
-                const senderId = String(msg.senderId);
-                const isOwn = senderId === currentUserId;
+              visibleMessages.map((msg, index) => {
+                const isAiChat = selectedChat?.id === "ai";
+                const isOwn = isAiChat
+                  ? msg.role === "user"
+                  : String(msg.senderId) === currentUserId;
 
                 return (
                   <div
-                    key={msg.id}
+                    key={msg.id || index}
                     className={`flex ${
                       isOwn ? "justify-end" : "justify-start"
                     }`}
@@ -406,16 +489,18 @@ export default function ChatsPage() {
                       className={`max-w-[70%] p-4 rounded-2xl ${
                         isOwn
                           ? "bg-blue-600 text-white"
+                          : isAiChat
+                          ? "bg-purple-50 text-gray-900 border border-purple-100"
                           : "bg-white text-gray-900 border"
                       }`}
                     >
                       {!isOwn && (
                         <p className="text-xs font-bold text-gray-500 mb-1">
-                          {msg.senderName}
+                          {isAiChat ? "AI Assistant" : msg.senderName}
                         </p>
                       )}
 
-                      <p>{msg.message}</p>
+                      <p className="whitespace-pre-line">{msg.message}</p>
 
                       <p
                         className={`text-xs mt-2 ${
@@ -429,19 +514,26 @@ export default function ChatsPage() {
                 );
               })
             )}
+
+            {aiLoading && selectedChat?.id === "ai" && (
+              <div className="flex justify-start">
+                <div className="bg-purple-50 text-gray-500 border border-purple-100 p-4 rounded-2xl">
+                  AI is typing...
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="p-5 border-t flex gap-3">
             <input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              disabled={!selectedChat?.real}
               placeholder={
-                selectedChat?.real
-                  ? "Type your message..."
-                  : "AI Assistant will be available later"
+                selectedChat?.id === "ai"
+                  ? "Ask AI Assistant..."
+                  : "Type your message..."
               }
-              className="flex-1 border rounded-xl px-4 py-3 disabled:bg-gray-100"
+              className="flex-1 border rounded-xl px-4 py-3"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   sendMessage();
@@ -451,7 +543,7 @@ export default function ChatsPage() {
 
             <button
               onClick={sendMessage}
-              disabled={!selectedChat?.real}
+              disabled={aiLoading}
               className="bg-blue-600 disabled:bg-gray-300 text-white px-6 py-3 rounded-xl font-semibold"
             >
               Send
