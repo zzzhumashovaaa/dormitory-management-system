@@ -37,47 +37,73 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers(
+                                "/api/ai-chat/**"
+                        ).hasAnyRole("STUDENT", "MANAGER", "ADMIN")
 
-                        .requestMatchers("/api/chats", "/api/chats/**")
-                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
-                        .requestMatchers("/api/ai-chat", "/api/ai-chat/**")
-                        .hasAnyAuthority("STUDENT", "ADMIN", "MANAGER", "ROLE_STUDENT", "ROLE_ADMIN", "ROLE_MANAGER")
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/ws/**"
+                        ).permitAll()
 
-                        .requestMatchers("/api/users/me")
-                        .authenticated()
+                        .requestMatchers(
+                                "/api/access/scan"
+                        ).hasAnyRole("STUDENT", "MANAGER", "ADMIN")
 
-                        .requestMatchers("/api/rooms/my-room")
-                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+                        .requestMatchers(
+                                "/api/access/my-history"
+                        ).hasRole("STUDENT")
 
-                        .requestMatchers("/api/rooms", "/api/rooms/**")
-                        .hasAnyRole("ADMIN", "MANAGER")
-                        .requestMatchers("/api/roommate-matching", "/api/roommate-matching/**")
-                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+                        .requestMatchers(
+                                "/api/access/logs"
+                        ).hasAnyRole("MANAGER", "ADMIN")
 
-                        .requestMatchers("/api/applications", "/api/applications/**")
-                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+                        .requestMatchers(
+                                "/api/student/**",
+                                "/api/ai-chat/**",
+                                "/api/payments/my",
+                                "/api/applications/my",
+                                "/api/complaints/my",
+                                "/api/notifications/my",
+                                "/api/notifications/unread-count",
+                                "/api/users/me",
+                                "/api/users/me/roommates"
+                        ).hasRole("STUDENT")
 
-                        .requestMatchers("/api/complaints", "/api/complaints/**")
-                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/applications")
+                        .hasRole("STUDENT")
 
-                        .requestMatchers("/api/notifications", "/api/notifications/**")
-                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/complaints")
+                        .hasRole("STUDENT")
 
-                        .requestMatchers("/api/payments/my")
-                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+                        .requestMatchers(
+                                "/api/manager/**",
+                                "/api/applications/**",
+                                "/api/complaints/**",
+                                "/api/payments/**",
+                                "/api/chats/**",
+                                "/api/notifications/**",
+                                "/api/rooms/**",
+                                "/api/users/students",
+                                "/api/users/managers"
+                        ).hasAnyRole("MANAGER", "ADMIN")
 
-                        .requestMatchers("/api/payments/**")
-                        .hasAnyRole("MANAGER", "ADMIN")
-                        .requestMatchers("/api/access/scan").permitAll()
+                        .requestMatchers(
+                                "/api/admin/**",
+                                "/api/users/admins"
+                        ).hasRole("ADMIN")
 
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/users/me",
+                                "/api/users/me/roommates"
+                        ).authenticated()
 
-                        .requestMatchers("/api/access/my-history")
-                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/users/me"
+                        ).authenticated()
 
                         .anyRequest().authenticated()
                 )
