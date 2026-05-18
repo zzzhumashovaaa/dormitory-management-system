@@ -11,7 +11,7 @@ export default function ApplicationDetailPage() {
   const [loading, setLoading] = useState(true);
 
   const [showRevisionModal, setShowRevisionModal] = useState(false);
-  const [adminComment, setAdminComment] = useState("");   
+  const [adminComment, setAdminComment] = useState("");
 
   const fetchApplication = async () => {
     try {
@@ -38,6 +38,31 @@ export default function ApplicationDetailPage() {
     }
   };
 
+  const requestChanges = async () => {
+    if (!adminComment.trim()) {
+      alert("Please write a comment");
+      return;
+    }
+
+    try {
+      await api.put(`/applications/${id}/request-changes`, {
+        adminComment,
+      });
+
+      setShowRevisionModal(false);
+      setAdminComment("");
+      await fetchApplication();
+    } catch (error) {
+      console.log("REQUEST CHANGES ERROR:", error);
+      alert(
+        "Failed: " +
+          error.response?.status +
+          " | " +
+          (error.response?.data?.message || error.message)
+      );
+    }
+  };
+
   useEffect(() => {
     fetchApplication();
   }, [id]);
@@ -57,37 +82,22 @@ export default function ApplicationDetailPage() {
       </DashboardLayout>
     );
   }
-  const requestChanges = async () => {
-  if (!adminComment.trim()) {
-    alert("Please write a comment");
-    return;
-  }
-
-  try {
-    await api.put(`/applications/${id}/request-changes`, {
-      adminComment,
-    });
-
-    setShowRevisionModal(false);
-    setAdminComment("");
-    await fetchApplication();
-  } catch (error) {
-  console.log("REQUEST CHANGES ERROR:", error);
-  console.log("STATUS:", error.response?.status);
-  console.log("DATA:", error.response?.data);
-
-  alert(
-    "Failed: " +
-      error.response?.status +
-      " | " +
-      (error.response?.data?.message || error.message)
-  );
-}
-};
 
   const isFinal =
     application.status === "APPROVED" ||
     application.status === "REJECTED";
+
+  const hasAiSuggestion =
+    application.preferredRoomNumber ||
+    application.preferredRoommateName ||
+    application.compatibilityScore;
+
+  const getScoreStyle = (score) => {
+    if (score >= 80) return "bg-green-100 text-green-700";
+    if (score >= 65) return "bg-blue-100 text-blue-700";
+    if (score >= 50) return "bg-yellow-100 text-yellow-700";
+    return "bg-gray-100 text-gray-700";
+  };
 
   return (
     <DashboardLayout>
@@ -144,7 +154,7 @@ export default function ApplicationDetailPage() {
           </div>
 
           <div>
-            <p className="text-sm text-gray-400">Assigned Room</p>
+            <p className="text-sm text-gray-400">Current Assigned Room</p>
             <p className="font-semibold">
               {application.student?.room?.roomNumber || "-"}
             </p>
@@ -153,10 +163,75 @@ export default function ApplicationDetailPage() {
           <div>
             <p className="text-sm text-gray-400">Created At</p>
             <p className="font-semibold">
-              {new Date(application.createdAt).toLocaleString()}
+              {application.createdAt
+                ? new Date(application.createdAt).toLocaleString()
+                : "-"}
             </p>
           </div>
         </div>
+
+        {hasAiSuggestion && (
+          <div className="mb-8 bg-blue-50 border border-blue-100 rounded-2xl p-6">
+            <div className="flex justify-between items-start mb-5">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Student's AI Roommate Choice
+                </h2>
+                <p className="text-gray-500 text-sm mt-1">
+                  This option was selected by the student during application creation.
+                </p>
+              </div>
+
+              {application.compatibilityScore && (
+                <span
+                  className={`px-4 py-2 rounded-full text-sm font-bold ${getScoreStyle(
+                    application.compatibilityScore
+                  )}`}
+                >
+                  {application.compatibilityScore}% match
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-5">
+              <div className="bg-white rounded-xl p-4">
+                <p className="text-sm text-gray-400">Preferred Room</p>
+                <p className="text-lg font-bold">
+                  {application.preferredRoomNumber || "-"}
+                </p>
+              </div>
+
+              <div className="bg-white rounded-xl p-4">
+                <p className="text-sm text-gray-400">Preferred Roommate</p>
+                <p className="text-lg font-bold">
+                  {application.preferredRoommateName || "Empty room / No roommate"}
+                </p>
+              </div>
+            </div>
+
+            {application.matchingFactors && (
+              <div className="bg-white rounded-xl p-4 mt-5">
+                <p className="text-sm text-gray-400 mb-1">
+                  Matching Factors
+                </p>
+                <p className="text-gray-700">
+                  {application.matchingFactors}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {!hasAiSuggestion && application.type === "ACCOMMODATION" && (
+          <div className="mb-8 bg-gray-50 border border-gray-100 rounded-2xl p-5">
+            <p className="font-semibold text-gray-800">
+              No AI roommate preference selected
+            </p>
+            <p className="text-sm text-gray-500 mt-1">
+              Admin can assign the room automatically.
+            </p>
+          </div>
+        )}
 
         <div className="mb-8">
           <p className="text-sm text-gray-400 mb-2">Application Message</p>
@@ -191,54 +266,55 @@ export default function ApplicationDetailPage() {
           </button>
 
           <button
-  disabled={isFinal}
-  onClick={() => setShowRevisionModal(true)}
-  className={`px-5 py-3 rounded-xl ${
-    isFinal
-      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-      : "bg-orange-500 hover:bg-orange-600 text-white"
-  }`}
->
-  Request Changes
-</button>
+            disabled={isFinal}
+            onClick={() => setShowRevisionModal(true)}
+            className={`px-5 py-3 rounded-xl ${
+              isFinal
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-orange-500 hover:bg-orange-600 text-white"
+            }`}
+          >
+            Request Changes
+          </button>
         </div>
       </div>
+
       {showRevisionModal && (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl">
-      <h2 className="text-2xl font-bold mb-2">
-        Request Changes
-      </h2>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl">
+            <h2 className="text-2xl font-bold mb-2">
+              Request Changes
+            </h2>
 
-      <p className="text-gray-500 mb-5">
-        Write what the student should fix in the application.
-      </p>
+            <p className="text-gray-500 mb-5">
+              Write what the student should fix in the application.
+            </p>
 
-      <textarea
-        value={adminComment}
-        onChange={(e) => setAdminComment(e.target.value)}
-        placeholder="Example: Please clarify your reason for accommodation request..."
-        className="w-full h-36 border rounded-xl p-4 outline-none focus:ring-2 focus:ring-orange-500"
-      />
+            <textarea
+              value={adminComment}
+              onChange={(e) => setAdminComment(e.target.value)}
+              placeholder="Example: Please clarify your reason for accommodation request..."
+              className="w-full h-36 border rounded-xl p-4 outline-none focus:ring-2 focus:ring-orange-500"
+            />
 
-      <div className="flex justify-end gap-3 mt-5">
-        <button
-          onClick={() => setShowRevisionModal(false)}
-          className="px-5 py-3 rounded-xl bg-gray-200 hover:bg-gray-300"
-        >
-          Cancel
-        </button>
+            <div className="flex justify-end gap-3 mt-5">
+              <button
+                onClick={() => setShowRevisionModal(false)}
+                className="px-5 py-3 rounded-xl bg-gray-200 hover:bg-gray-300"
+              >
+                Cancel
+              </button>
 
-        <button
-          onClick={requestChanges}
-          className="px-5 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white"
-        >
-          Send to Student
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+              <button
+                onClick={requestChanges}
+                className="px-5 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                Send to Student
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

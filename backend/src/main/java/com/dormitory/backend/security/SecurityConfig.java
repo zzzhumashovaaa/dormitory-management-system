@@ -38,26 +38,42 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
 
-                        .requestMatchers("/api/chats/**")
-                        .authenticated()
+                        .requestMatchers("/api/chats", "/api/chats/**")
+                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
 
                         .requestMatchers("/api/users/me")
                         .authenticated()
 
-                        .requestMatchers("/api/rooms/**")
+                        .requestMatchers("/api/rooms/my-room")
+                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+
+                        .requestMatchers("/api/rooms", "/api/rooms/**")
                         .hasAnyRole("ADMIN", "MANAGER")
-
-                        .requestMatchers("/api/applications/**")
+                        .requestMatchers("/api/roommate-matching", "/api/roommate-matching/**")
                         .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
 
-                        .requestMatchers("/api/complaints/**")
+                        .requestMatchers("/api/applications", "/api/applications/**")
                         .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
 
-                        .requestMatchers("/api/notifications/**")
+                        .requestMatchers("/api/complaints", "/api/complaints/**")
+                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+
+                        .requestMatchers("/api/notifications", "/api/notifications/**")
+                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+
+                        .requestMatchers("/api/payments/my")
+                        .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+
+                        .requestMatchers("/api/payments/**")
+                        .hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers("/api/access/scan").permitAll()
+
+                        .requestMatchers("/api/access/my-history")
                         .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
 
                         .anyRequest().authenticated()

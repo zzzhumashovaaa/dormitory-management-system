@@ -1,20 +1,98 @@
+import { useEffect, useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { QRCodeSVG } from "qrcode.react";
+import api from "../api/axios";
 
 export default function QRAccessPage() {
-  const studentName =
-    localStorage.getItem("fullName") || "Aizhan Zhumashova";
+  const [user, setUser] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [lastAccess, setLastAccess] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const studentId =
-    localStorage.getItem("studentId") || "ST-2026-001";
+  const fetchUser = async () => {
+    try {
+      const response = await api.get("/users/me");
+      setUser(response.data);
+    } catch (error) {
+      console.log("QR USER ERROR:", error);
+    }
+  };
 
+  const fetchHistory = async () => {
+    try {
+      const response = await api.get("/access/my-history");
+      setHistory(response.data || []);
+      setLastAccess(response.data?.[0] || null);
+    } catch (error) {
+      console.log("ACCESS HISTORY ERROR:", error);
+    }
+  };
+
+  const simulateScan = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+
+      const studentIdentifier = user.studentId || user.id;
+
+      const response = await api.post("/access/scan", {
+        studentId: studentIdentifier,
+      });
+
+      setLastAccess(response.data);
+      await fetchHistory();
+    } catch (error) {
+      console.log("SIMULATE SCAN ERROR:", error);
+      alert("Failed to register access");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUser();
+    fetchHistory();
+  }, []);
+
+  if (!user) {
+    return (
+      <DashboardLayout>
+        <div className="bg-white p-8 rounded-3xl shadow">
+          Loading QR data...
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const studentName = user.fullName || "Student";
+  const studentId = user.studentId || user.id;
+  const roomNumber = user.room?.roomNumber || "Not assigned";
   const qrData = `DORM_ACCESS:${studentId}`;
+
+  const formatDate = (date) => {
+    if (!date) return "-";
+    return new Date(date).toLocaleDateString();
+  };
+
+  const formatTime = (date) => {
+    if (!date) return "-";
+    return new Date(date).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const statusColor = (status) => {
+    if (status === "LATE") return "text-red-600";
+    if (status === "ON_TIME") return "text-green-600";
+    return "text-blue-600";
+  };
 
   return (
     <DashboardLayout>
       <div className="mb-8">
         <h1 className="text-3xl font-bold">QR Access</h1>
-
         <p className="text-gray-500">
           Use your personal QR code to enter or exit the dormitory.
         </p>
@@ -22,9 +100,7 @@ export default function QRAccessPage() {
 
       <div className="grid grid-cols-3 gap-8">
         <div className="col-span-2 bg-white p-8 rounded-3xl shadow">
-          <h2 className="text-2xl font-bold mb-6">
-            My Dormitory QR Code
-          </h2>
+          <h2 className="text-2xl font-bold mb-6">My Dormitory QR Code</h2>
 
           <div className="flex items-center gap-10">
             <div className="bg-gray-100 p-8 rounded-3xl flex items-center justify-center">
@@ -39,114 +115,93 @@ export default function QRAccessPage() {
               </div>
             </div>
 
-            <div>
-              <h3 className="text-2xl font-bold mb-2">
-                {studentName}
-              </h3>
+            <div className="flex-1">
+              <h3 className="text-2xl font-bold mb-2">{studentName}</h3>
 
-              <p className="text-gray-500 mb-1">
-                Student ID: {studentId}
-              </p>
+              <p className="text-gray-500 mb-1">Student ID: {studentId}</p>
+              <p className="text-gray-500 mb-1">Room: {roomNumber}</p>
+              <p className="text-gray-500 mb-6">Access type: Entry / Exit</p>
 
-              <p className="text-gray-500 mb-6">
-                Access type: Entry / Exit
-              </p>
-
-              <div className="bg-blue-50 text-blue-700 p-4 rounded-2xl mb-5">
-                Show this QR code at the dormitory entrance.
-                The system will automatically register your
-                entry and exit time.
+              <div className="bg-blue-50 text-sm text-blue-700 p-4 rounded-2xl mb-5">
+                For local demo, click the button below. The system will
+                automatically decide whether this is ENTRY or EXIT.
               </div>
 
-              <div className="space-y-3">
-                <div className="flex justify-between gap-10">
-                  <span className="text-gray-500">
-                    Dormitory closes:
-                  </span>
+              <button
+                onClick={simulateScan}
+                disabled={loading}
+                className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-60"
+              >
+                {loading ? "Registering..." : "Simulate QR Scan"}
+              </button>
 
-                  <span className="font-bold">22:00</span>
+              {lastAccess && (
+                <div className="mt-5 bg-gray-50 p-4 rounded-2xl">
+                  <p className="text-gray-500 text-sm">Last action</p>
+                  <h3 className="text-xl font-bold">
+                    {lastAccess.action} —{" "}
+                    <span className={statusColor(lastAccess.status)}>
+                      {lastAccess.status}
+                    </span>
+                  </h3>
+                  <p className="text-gray-500 text-sm mt-1">
+                    {formatDate(lastAccess.scannedAt)} {formatTime(lastAccess.scannedAt)}
+                  </p>
                 </div>
-
-                <div className="flex justify-between gap-10">
-                  <span className="text-gray-500">
-                    QR Status:
-                  </span>
-
-                  <span className="font-bold text-green-600">
-                    Active
-                  </span>
-                </div>
-
-                <div className="flex justify-between gap-10">
-                  <span className="text-gray-500">
-                    Access level:
-                  </span>
-
-                  <span className="font-bold">
-                    Student Access
-                  </span>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
 
         <div className="space-y-8">
           <div className="bg-white p-7 rounded-3xl shadow">
-            <h2 className="text-xl font-bold mb-4">
-              Today’s Access
-            </h2>
+            <h2 className="text-xl font-bold mb-4">Today’s Access</h2>
 
             <div className="space-y-4">
               <div>
-                <p className="text-gray-500 text-sm">
-                  Last entry
-                </p>
-
+                <p className="text-gray-500 text-sm">Last action</p>
                 <h3 className="font-bold text-lg">
-                  21:42
+                  {lastAccess?.action || "-"}
                 </h3>
               </div>
 
               <div>
-                <p className="text-gray-500 text-sm">
-                  Status
-                </p>
-
-                <h3 className="font-bold text-green-600">
-                  On time
+                <p className="text-gray-500 text-sm">Time</p>
+                <h3 className="font-bold text-lg">
+                  {formatTime(lastAccess?.scannedAt)}
                 </h3>
               </div>
 
               <div>
-                <p className="text-gray-500 text-sm">
-                  Dormitory closes at
-                </p>
-
-                <h3 className="font-bold text-lg">
-                  22:00
+                <p className="text-gray-500 text-sm">Status</p>
+                <h3
+                  className={`font-bold ${
+                    lastAccess ? statusColor(lastAccess.status) : "text-gray-400"
+                  }`}
+                >
+                  {lastAccess?.status || "-"}
                 </h3>
+              </div>
+
+              <div>
+                <p className="text-gray-500 text-sm">Dormitory closes at</p>
+                <h3 className="font-bold text-lg">22:00</h3>
               </div>
             </div>
           </div>
 
           <div className="bg-gray-950 text-white p-7 rounded-3xl shadow">
-            <h2 className="text-xl font-bold mb-3">
-              Access Rule
-            </h2>
-
+            <h2 className="text-xl font-bold mb-3">Access Rule</h2>
             <p className="text-gray-300 text-sm">
-              Entry after 22:00 may be marked as a late
-              entry and saved in the dormitory access history.
+              Entry after 22:00 may be marked as late and saved in access
+              history.
             </p>
           </div>
         </div>
       </div>
 
       <div className="bg-white p-8 rounded-3xl shadow mt-8">
-        <h2 className="text-2xl font-bold mb-6">
-          Access History
-        </h2>
+        <h2 className="text-2xl font-bold mb-6">Access History</h2>
 
         <div className="overflow-hidden rounded-2xl border">
           <table className="w-full">
@@ -160,32 +215,24 @@ export default function QRAccessPage() {
             </thead>
 
             <tbody>
-              <tr className="border-t">
-                <td className="p-4">May 17, 2026</td>
-                <td className="p-4">21:42</td>
-                <td className="p-4">Entry</td>
-                <td className="p-4 text-green-600 font-semibold">
-                  On time
-                </td>
-              </tr>
-
-              <tr className="border-t">
-                <td className="p-4">May 16, 2026</td>
-                <td className="p-4">22:31</td>
-                <td className="p-4">Entry</td>
-                <td className="p-4 text-red-600 font-semibold">
-                  Late
-                </td>
-              </tr>
-
-              <tr className="border-t">
-                <td className="p-4">May 16, 2026</td>
-                <td className="p-4">08:15</td>
-                <td className="p-4">Exit</td>
-                <td className="p-4 text-blue-600 font-semibold">
-                  Recorded
-                </td>
-              </tr>
+              {history.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="p-8 text-center text-gray-500">
+                    No access records yet.
+                  </td>
+                </tr>
+              ) : (
+                history.map((item) => (
+                  <tr key={item.id} className="border-t">
+                    <td className="p-4">{formatDate(item.scannedAt)}</td>
+                    <td className="p-4">{formatTime(item.scannedAt)}</td>
+                    <td className="p-4">{item.action}</td>
+                    <td className={`p-4 font-semibold ${statusColor(item.status)}`}>
+                      {item.status}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

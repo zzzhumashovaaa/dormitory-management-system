@@ -37,7 +37,7 @@ public class User extends BaseEntity {
     private String cleanlinessLevel;
 
     private String noiseTolerance;
-
+    @Column(length = 1000)
     private String hobbies;
 
     @ManyToOne

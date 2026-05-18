@@ -32,7 +32,7 @@ export default function ChatsPage() {
     if (!chatId) return;
 
     try {
-      await api.post(`/chats/${chatId}/read`);
+      await api.put(`/chats/${chatId}/read`);
       setRoomChat((prev) =>
         prev?.id === chatId ? { ...prev, unreadCount: 0 } : prev
       );
