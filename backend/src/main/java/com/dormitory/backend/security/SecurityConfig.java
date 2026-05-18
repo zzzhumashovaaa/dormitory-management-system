@@ -45,6 +45,8 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/chats", "/api/chats/**")
                         .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
+                        .requestMatchers("/api/ai-chat", "/api/ai-chat/**")
+                        .hasAnyAuthority("STUDENT", "ADMIN", "MANAGER", "ROLE_STUDENT", "ROLE_ADMIN", "ROLE_MANAGER")
 
                         .requestMatchers("/api/users/me")
                         .authenticated()
@@ -72,6 +74,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/payments/**")
                         .hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/access/scan").permitAll()
+
 
                         .requestMatchers("/api/access/my-history")
                         .hasAnyRole("STUDENT", "MANAGER", "ADMIN")
